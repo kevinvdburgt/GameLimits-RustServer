@@ -12,6 +12,37 @@ html(lang='en')
   body
     //- include ../partial/header
 
+    //- Header
+    nav.navbar(role='navigation' aria-label='main navigation').is-primary
+      div.container
+        div.navbar-brand
+          a.navbar-item(href='/') Game Limits - Rust
+
+          button.button.navbar-burger
+            span
+            span
+            span
+
+        div.navbar-menu
+          div.navbar-start
+            a.navbar-item.is-active(href='/') Home
+            a.navbar-item(href='/rules') Rules
+            a.navbar-item(href='/') Chatlog
+            a.navbar-item(href='/') Contact
+            a.navbar-item(href='/rules') Donate
+              
+          div.navbar-end
+            if user
+              a.navbar-item(href='/rp') 
+                small RP: 239
+              a.navbar-item(href='/logout')
+                img(src=user.photos[2].value)
+                small &nbsp; #{user.displayName}
+            else
+              a.navbar-item(href='/login')
+                img(src='https://steamcommunity-a.akamaihd.net/public/images/signinthroughsteam/sits_01.png')
+
+
     block content
 
     script(src='/dist/bundle.js')

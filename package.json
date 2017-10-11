@@ -2,7 +2,7 @@
   "name": "gamelimits-rust",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "bin/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node bin/index.js",
@@ -20,7 +20,9 @@
   "dependencies": {
     "bulma": "^0.6.0",
     "express": "^4.16.2",
+    "express-session": "^1.15.6",
     "morgan": "^1.9.0",
+    "passport-steam": "^1.0.8",
     "pug": "^2.0.0-rc.4"
   },
   "devDependencies": {
@@ -30,6 +32,7 @@
     "file-loader": "^1.1.5",
     "node-sass": "^4.5.3",
     "nodemon": "^1.12.1",
+    "passport": "^0.4.0",
     "rimraf": "^2.6.2",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.19.0",
