@@ -1,49 +1,44 @@
 import express from 'express';
 import session from 'express-session';
-import morgan from 'morgan';
 import path from 'path';
+import morgan from 'morgan';
 import passport from 'passport';
-import routes from './routes';
-import SteamStrategy from 'passport-steam';
+import knex from 'knex';
+import SessionFileStore from 'session-file-store';
+import routes from './app/routes';
+import knexfile from './config/knexfile';
+import './config/passport';
 
+const listenPort = process.env.PORT || 3000;
 const app = express();
-const LISTEN_PORT = process.env.LISTEN_PORT || 3000;
+const sessionFileStore = SessionFileStore(session);
 
-passport.serializeUser(function(user, done) {
-  done(null, user);
-});
+// Migrate the database on startup
+knex(knexfile.production).migrate.latest();
 
-passport.deserializeUser(function(obj, done) {
-  done(null, obj);
-});
-
-// Setup passport
-passport.use(new SteamStrategy({
-  returnURL: 'http://localhost:3000/login/return',
-  realm: 'http://localhost:3000/',
-  apiKey: '8C5E14C740EC1EA6212BA257466A76F7',
-}, (identifier, profile, done) => {
-  process.nextTick(() => {
-    profile.identifier = identifier;
-    return done(null, profile);
-  });
+// Setup the sessions
+app.use(session({
+  store: new sessionFileStore({
+    path: path.join(__dirname, '..', 'data', 'sessions'),
+  }),
+  secret: 'keyboard cat',
+  resave: false,
+  saveUninitialized: true,
+  // cookie: { secure: true },
 }));
 
-// Use sessions
-app.use(session({ secret: 'asdasdhgksdjf' }));
-
-// Use the passport
+// Setup passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Set the templating engine to pug
+// Setup serving static files
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
+// Setup pug for templating
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, '..', 'resources', 'view'));
 
-// Serve static files from the public folder
-app.use(express.static(path.join(__dirname, '..', 'public')));
-
-// Log all requests
+// Setup the morgan logger
 app.use(morgan('tiny'));
 
 // Add locals
@@ -54,14 +49,16 @@ app.use((req, res, next) => {
   next();
 });
 
-// Bind the routes
+// Add the app routes
 app.use(routes);
 
-// Handle 404 pages
+// Process 404 pages
 app.use((req, res) => res.status(404).render('page/error/404'));
 
-// Handle 500 pages
+// Process 500 pages
 app.use((err, req, res, next) => res.status(500).render('page/error/500', {err}));
 
 // Start listening
-app.listen(LISTEN_PORT, () => console.log(`Listening on port ${LISTEN_PORT}`));
+app.listen(listenPort, () => {
+  console.log(`Started listening on port ${listenPort}`);
+});

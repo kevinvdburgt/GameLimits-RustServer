@@ -7,9 +7,11 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node bin/index.js",
     "watch": "nodemon --exec babel-node --watch src/ -- src/index.js",
+    "watch:test": "nodemon --exec babel-node --watch src/ -- src/test.js",
     "webpack:watch": "./node_modules/.bin/webpack --watch",
     "clean": "./node_modules/.bin/rimraf bin/ && ./node_modules/.bin/rimraf public/dist/",
-    "build": "npm run clean && ./node_modules/.bin/webpack -p && ./node_modules/.bin/babel src --out-dir bin"
+    "build": "npm run clean && ./node_modules/.bin/webpack -p && ./node_modules/.bin/babel src --out-dir bin",
+    "docker:push": "npm run build && docker build -t kevinvdburgt/rust-server . && docker push kevinvdburgt/rust-server"
   },
   "repository": {
     "type": "git",
@@ -18,12 +20,19 @@
   "author": "Kevin van der Burgt",
   "license": "ISC",
   "dependencies": {
+    "bookshelf": "^0.10.4",
+    "bookshelf-upsert": "^0.1.4",
     "bulma": "^0.6.0",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
+    "knex": "^0.13.0",
     "morgan": "^1.9.0",
+    "mysql": "^2.15.0",
+    "passport": "^0.4.0",
     "passport-steam": "^1.0.8",
-    "pug": "^2.0.0-rc.4"
+    "pug": "^2.0.0-rc.4",
+    "session-file-store": "^1.1.2",
+    "sqlite3": "^3.1.13"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
@@ -32,7 +41,6 @@
     "file-loader": "^1.1.5",
     "node-sass": "^4.5.3",
     "nodemon": "^1.12.1",
-    "passport": "^0.4.0",
     "rimraf": "^2.6.2",
     "sass-loader": "^6.0.6",
     "style-loader": "^0.19.0",
