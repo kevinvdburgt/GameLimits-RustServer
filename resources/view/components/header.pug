@@ -1,0 +1,39 @@
+nav.navbar.is-dark(role='navigation' aria-label='main navigation')
+  div.container
+    div.navbar-brand
+      a.navbar-item(href='/') Game Limits - Rust
+
+      button.button.navbar-burger
+        span
+        span
+        span
+
+    div.navbar-menu
+      div.navbar-start
+        a.navbar-item.is-active(href='/') Home
+        a.navbar-item(href='/rules') Rules
+        a.navbar-item(href='/chatlog') Chatlog
+        //- a.navbar-item(href='/') Contact
+        a.navbar-item(href='/') Donate
+          
+      div.navbar-end
+        if user && user.is_admin
+          div.navbar-item.has-dropdown.is-hoverable
+            div.navbar-link
+              | Admin
+            div.navbar-dropdown
+              a.navbar-item(href='/admin') Dashboard
+              a.navbar-item(href='/admin/players') Players
+
+        if user
+          div.navbar-item.has-dropdown.is-hoverable
+            div.navbar-link
+              if user.avatar
+                img(src=user.avatar)
+              |&nbsp; #{user.display_name}
+            div.navbar-dropdown
+              a.navbar-item(href='/logout') Logout
+              a.navbar-item(href='/logout') Donate for Reward Points
+        else
+          a.navbar-item(href='/login')
+            img(src='https://steamcommunity-a.akamaihd.net/public/images/signinthroughsteam/sits_01.png')

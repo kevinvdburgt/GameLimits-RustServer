@@ -13,43 +13,8 @@ html(lang='en')
     //- include ../partial/header
 
     //- Header
-    nav.navbar(role='navigation' aria-label='main navigation').is-primary
-      div.container
-        div.navbar-brand
-          a.navbar-item(href='/') Game Limits - Rust
-
-          button.button.navbar-burger
-            span
-            span
-            span
-
-        div.navbar-menu
-          div.navbar-start
-            a.navbar-item.is-active(href='/') Home
-            a.navbar-item(href='/rules') Rules
-            //- a.navbar-item(href='/') Chatlog
-            //- a.navbar-item(href='/') Contact
-            //- a.navbar-item(href='/rules') Donate
-              
-          div.navbar-end
-            if user && user.get('is_admin')
-              div.navbar-item.has-dropdown.is-hoverable
-                div.navbar-link
-                  small Admin
-                div.navbar-dropdown
-                  a.navbar-item(href='/admin') Dashboard
-                  a.navbar-item(href='/admin/players') Players
-
-            if user
-              div.navbar-item.has-dropdown.is-hoverable
-                div.navbar-link
-                  img(src=user.get('avatar'))
-                  small &nbsp; #{user.get('display_name')}
-                div.navbar-dropdown
-                  a.navbar-item(href='/logout') Logout
-            else
-              a.navbar-item(href='/login')
-                img(src='https://steamcommunity-a.akamaihd.net/public/images/signinthroughsteam/sits_01.png')
+    block header
+      include ../components/header
 
 
     block content

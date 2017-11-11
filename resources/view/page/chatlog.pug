@@ -1,0 +1,12 @@
+extends ../template/default
+  
+block content
+  section.section
+    div.container
+      h1.title Chatlog
+      hr
+      div.content
+        each log in logs
+          strong #{log.display_name}:
+          |#{log.message}
+          small (#{log.created_at})

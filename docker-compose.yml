@@ -5,34 +5,19 @@ services:
     image: kevinvdburgt/rust-server
     container_name: rustsite
     restart: unless-stopped
-    ports:
-      - "3005:3005"
     environment:
-      # Web application
-      LISTEN: 3005
-      STEAM_RETURN_URL: https://rust.gamelimits.com/login/return
-      STEAM_REALM: https://rust.gamelimits.com/
-      STEAM_API: 8C5E14C740EC1EA6212BA257466A76F7
-      MYSQL_DATABASE: gamelimits_rust
-      MYSQL_USER: gamelimits
-      MYSQL_PASSWORD: osduhfgp9as7d8yasd
-      MYSQL_PORT: 3306
-      MYSQL_HOST: mysql
-
       # Reverse ngnix proxy
       VIRTUAL_HOST: rust.gamelimits.com
-      VIRTUAL_PORT: 3005
+      VIRTUAL_PORT: 7777
       LETSENCRYPT_HOST: rust.gamelimits.com
       LETSENCRYPT_EMAIL: info@gamelimits.com
     volumes:
-      - ./data:/usr/src/app/data
+      - ./config.js:/app/config.js:ro
 
   mysql:
     image: mariadb
     container_name: rustsite-database
     restart: unless-stopped
-    ports:
-      - "33060:3306"
     environment:
       MYSQL_ROOT_PASSWORD: random0uytsdjghs
       MYSQL_DATABASE: gamelimmits_rust

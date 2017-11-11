@@ -1,18 +1,21 @@
 FROM node:8
 
 # Create the app directory
-RUN mkdir -p /usr/src/app
-WORKDIR /usr/src/app
+RUN mkdir -p /app
+WORKDIR /app
 
 # Install the app dependencies
-COPY package.json /usr/src/app/
+COPY package.json /app/
+COPY package-lock.json /app/
 RUN npm install --production
 
 # Bundle app source
-COPY . /usr/src/app
+COPY . /app
 
 # Expose the app port
-EXPOSE 3000
+EXPOSE 7777
 
-# Run the server
-CMD ["npm", "start"]
+# Starting the app
+ADD ./entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+CMD ["/entrypoint.sh"]

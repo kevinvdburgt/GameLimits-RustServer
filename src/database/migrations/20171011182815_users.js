@@ -4,7 +4,7 @@ exports.up = (knex, Promise) => knex.schema.createTableIfNotExists('users', (tab
   table.string('steam_id');
   table.string('avatar');
   table.boolean('is_admin').defaultTo(false);
-  table.timestamps();
+  table.timestamps(true, true);
 });
 
 exports.down = (knex, Promise) => knex.schema.dropTableIfExists('users');
