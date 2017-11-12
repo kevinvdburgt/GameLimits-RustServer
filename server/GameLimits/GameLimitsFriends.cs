@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using static Oxide.Plugins.GameLimits;
 
 namespace Oxide.Plugins
@@ -80,6 +81,7 @@ namespace Oxide.Plugins
                         }
 
                         int foundUser = Convert.ToInt32(records[0]["id"]);
+                        ulong foundUserId = Convert.ToUInt64(records[0]["steam_id"]);
 
                         if (foundUser == info.id)
                         {
@@ -99,7 +101,7 @@ namespace Oxide.Plugins
                             {
                                 SendReply(player, $"{records[0]["display_name"]} added to your friends list.");
 
-                                // @TODO: Reload friends list?
+                                AddFriend(player, foundUserId);
                             });
                         });
                     });
@@ -122,6 +124,7 @@ namespace Oxide.Plugins
                         }
 
                         int foundUser = Convert.ToInt32(records[0]["id"]);
+                        ulong foundUserId = Convert.ToUInt64(records[0]["steam_id"]);
 
                         if (foundUser == info.id)
                         {
@@ -137,11 +140,11 @@ namespace Oxide.Plugins
                                 return;
                             }
 
-                            MInsert(MBuild("INSERT INTO friends (user_id, with_user_id) VALUES (@0, @1);", info.id, foundUser), records3 =>
+                            MDelete(MBuild("DELETE FROM friends WHERE id=@0 LIMIT 1;", records2[0]["id"]), records3 =>
                             {
                                 SendReply(player, $"{records[0]["display_name"]} removed from your friends list.");
 
-                                // @TODO: Reload friends list?
+                                RemoveFriend(player, foundUserId);
                             });
                         });
                     });
@@ -155,7 +158,23 @@ namespace Oxide.Plugins
         #endregion
 
         #region Functions
+        void AddFriend(BasePlayer player, ulong friendUid)
+        {
+            if (playerFriends.ContainsKey(player.userID))
+                playerFriends[player.userID].Add(friendUid);
+            else
+                playerFriends.Add(player.userID, new HashSet<ulong> { friendUid });
+        }
 
+        void RemoveFriend(BasePlayer player, ulong friendUid)
+        {
+            if (playerFriends.ContainsKey(player.userID))
+                playerFriends[player.userID].Remove(friendUid);
+
+            // When there are no users connected to this as friend, remove..
+            if (playerFriends[player.userID].Count == 0)
+                playerFriends.Remove(player.userID);
+        }
         #endregion
     }
 }

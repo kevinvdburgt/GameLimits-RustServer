@@ -132,6 +132,11 @@ namespace Oxide.Plugins
         {
             mysql.Insert(sql, mysqlConnection, callback);
         }
+
+        public static void MDelete(Sql sql, Action<int> callback = null)
+        {
+            mysql.Delete(sql, mysqlConnection, callback);
+        }
         #endregion
 
         #region Server Events
