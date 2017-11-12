@@ -1,3 +1,5 @@
+import './services/playersync';
+
 // import Knex from 'knex';
 // import knexfile from './config/knexfile';
 

@@ -10,6 +10,7 @@ import database from './database/database';
 import config from '../config';
 import routes from './app/routes';
 import './config/passport';
+import './services/playersync';
 
 const app = express();
 const sessionFileStore = SessionFileStore(session);
