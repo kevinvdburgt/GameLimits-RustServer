@@ -1,22 +1,20 @@
-import User from '../../models/user';
+import database from '../../../database/database';
 
-const index = (req, res) => {
-  User
-    .query()
-    .orderBy('id', 'desc')
-    // .fetchPage({
-    //   pageSize: 20,
-    //   page: 0,
-    // })
-    .then((users) => {
-      console.log(users);
-      res.render('page/admin/players/index', {
-        users
-      });
-    })
-    .catch((err) => {
-      throw err;
+const index = async (req, res) => {
+  const users = await database
+    .table('users')
+    .map(async (user) => {
+      const rp = await database
+      .table('reward_points')
+      .where('user_id', user.id)
+      .sum('points as rp');
+    
+      user.rp = rp[0].rp;
+      user.rp = user.rp === null ? 0 : user.rp;
+      return user;
     });
+    
+  res.render('page/admin/players/index', { users });
 };
 
 export default { index };

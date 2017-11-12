@@ -19,6 +19,14 @@ passport.deserializeUser(async (id, done) => {
     return done('No user found');
   }
 
+  const rp = await database
+    .table('reward_points')
+    .where('user_id', user.id)
+    .sum('points as rp');
+  
+  user.rp = rp[0].rp;
+  user.rp = user.rp === null ? 0 : user.rp;
+
   return done(null, user);
 });
 
@@ -45,7 +53,10 @@ passport.use(new SteamStrategy({
         avatar: profile.photos[2].value,
       });
 
-      return done(null, user);
+    return done(null, await database
+      .table('users')
+      .where('steam_id', profile.id)
+      .first());
 
 
     // User

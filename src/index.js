@@ -1,8 +1,11 @@
+import 'babel-polyfill';
 import express from 'express';
 import session from 'express-session';
 import path from 'path';
 import passport from 'passport';
+import bodyParser from 'body-parser';
 import SessionFileStore from 'session-file-store';
+import moment from 'moment';
 import database from './database/database';
 import config from '../config';
 import routes from './app/routes';
@@ -25,7 +28,6 @@ app.use(session({
   // cookie: { secure: true },
 }));
 
-
 // Setup passport
 app.use(passport.initialize());
 app.use(passport.session());
@@ -37,10 +39,17 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.set('view engine', 'pug');
 app.set('views', path.join(__dirname, '..', 'resources', 'view'));
 
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+
+// parse application/json
+app.use(bodyParser.json());
+
 // Add locals
 app.use((req, res, next) => {
   res.locals = {
     user: req.user,
+    moment,
   };
   next();
 });

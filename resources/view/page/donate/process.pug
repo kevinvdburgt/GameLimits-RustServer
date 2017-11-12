@@ -1,0 +1,15 @@
+extends ../../template/default
+  
+block content
+  section.section
+    div.container
+      h1.title Donate
+      hr
+      div.content
+        p Reward Points are game currency that you can buy a variety of things in our in-game store. To replenish Reward Points we offer a variety of options, from credit cards to e-currency.
+      hr
+      if success == true
+        span.is-size-2.has-text-centered.is-block.has-text-success You have replenished #{points} RP
+        span.is-size-4.has-text-centered.is-block Thank you :)
+      else
+        span.is-size-2.has-text-centered.is-block.has-text-danger Something went horribly wrong, please, contact us at the Discord server!

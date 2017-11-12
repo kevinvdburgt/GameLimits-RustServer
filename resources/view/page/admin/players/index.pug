@@ -11,17 +11,21 @@ block content
             tr
               th Display name
               th Steam ID
+              th RP
               th Created at
               th Updated at
-              th Actions
+              th.has-text-right Actions
           tbody
             each user in users
               tr
                 td
-                  img(src=user.avatar style='max-height: 22px')
+                  if user.avatar
+                    img(src=user.avatar style='max-height: 22px')
                   | &nbsp; #{user.display_name}
                 td #{user.steam_id}
-                td #{user.created_at}
-                td #{user.updated_at}
-                td
+                td #{user.rp}
+                td #{moment(user.created_at).format('DD-MM-YYYY HH:mm')}
+                td #{moment(user.updated_at).format('DD-MM-YYYY HH:mm')}
+                td.has-text-right
+                  a.button.is-primary.is-small.is-outlined(href=`/admin/players/${user.id}`) View profile
                   

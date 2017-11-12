@@ -1,0 +1,34 @@
+extends ../../template/default
+  
+block content
+  section.section
+    div.container
+      h1.title Donate
+      hr
+      div.content
+        p Reward Points are game currency that you can buy a variety of things in our in-game store. To replenish Reward Points we offer a variety of options, from credit cards to e-currency.
+      hr
+
+      if user
+        div.columns
+          div.column.is-hidden-mobile
+          div.column
+            form.js-rp-form(method='post' action='/donate')
+              span.is-size-2.has-text-centered.is-block.js-rp-result 0 RP
+              div.field.has-addons
+                p.control
+                  a.button.is-static EUR
+
+                div.control.is-expanded
+                  input.input.js-rp-input(type='text' placeholder='Payment amount' name='amount')
+
+                div.control
+                  button.button.is-info.js-rp-button(type='submit') Pay
+
+          div.column.is-hidden-mobile
+
+      else
+        div.content.has-text-centered
+          p To replenish Reward Points, you have to be logged in.
+          a(href='/login')
+            img(src='https://steamcommunity-a.akamaihd.net/public/images/signinthroughsteam/sits_02.png')

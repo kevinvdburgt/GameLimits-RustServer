@@ -7,7 +7,7 @@ WORKDIR /app
 # Install the app dependencies
 COPY package.json /app/
 COPY package-lock.json /app/
-RUN npm install --production
+RUN npm install
 
 # Bundle app source
 COPY . /app
@@ -16,6 +16,6 @@ COPY . /app
 EXPOSE 7777
 
 # Starting the app
-ADD ./entrypoint.sh /
-RUN chmod +x /entrypoint.sh
+ADD ./entrypoint.sh ./wait.sh /
+RUN chmod +x /entrypoint.sh /wait.sh
 CMD ["/entrypoint.sh"]

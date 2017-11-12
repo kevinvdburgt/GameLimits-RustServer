@@ -1,4 +1,4 @@
-exports.up = (knex, Promise) => knex.schema.createTableIfNotExists('points', (table) => {
+exports.up = (knex, Promise) => knex.schema.createTableIfNotExists('reward_points', (table) => {
   table.increments().primary();
   table.integer('user_id').unsigned().references('users.id');
   table.integer('points');
@@ -6,4 +6,4 @@ exports.up = (knex, Promise) => knex.schema.createTableIfNotExists('points', (ta
   table.timestamp('created_at').defaultTo(knex.fn.now());
 });
 
-exports.down = (knex, Promise) => knex.schema.dropTableIfExists('points');
+exports.down = (knex, Promise) => knex.schema.dropTableIfExists('reward_points');
