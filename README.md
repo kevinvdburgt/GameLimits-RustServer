@@ -2,10 +2,14 @@
 
 
 ## Todo
+- [x] Core
+- [x] Friends
+- [ ] Teleport
+- [ ] Remove tool
 - [ ] Shop
 - [ ] Kit
 - [ ] VIP
 - [ ] Car spawns
 - [x] Online chat history
-- [x] Log chat to discord (and reply)
+- [ ] Log chat to Slack (with reply)
 - [ ] Spawn cars at rad zones

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ProtoBuf;
+using System;
 using System.Collections.Generic;
 using static Oxide.Plugins.GameLimits;
 
@@ -154,6 +155,39 @@ namespace Oxide.Plugins
                     SendReply(player, syntax);
                     return;
             }
+        }
+
+        private object OnTurretTarget(AutoTurret turret, BaseCombatEntity target)
+        {
+            if (!(target is BasePlayer) || turret.OwnerID <= 0)
+                return null;
+
+            var player = (BasePlayer)target;
+
+            if (turret.IsAuthed(player) || !HasFriend(turret.OwnerID, player.userID))
+                return null;
+
+            turret.authorizedPlayers.Add(new PlayerNameID
+            {
+                userid = player.userID,
+                username = player.displayName
+            });
+            return false;
+        }
+
+        private object CanUseLockedEntity(BasePlayer player, BaseLock @lock)
+        {
+            if (!(@lock is CodeLock) || @lock.GetParentEntity().OwnerID <= 0)
+                return null;
+
+            if (HasFriend(@lock.GetParentEntity().OwnerID, player.userID))
+            {
+                var codeLock = (CodeLock)@lock;
+                var whitelistPlayers = (List<ulong>) codeLock.whitelistPlayers;
+                if (!whitelistPlayers.Contains(player.userID))
+                    whitelistPlayers.Add(player.userID);
+            }
+            return null;
         }
         #endregion
 

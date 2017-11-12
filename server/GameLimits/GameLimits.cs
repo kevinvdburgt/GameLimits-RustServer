@@ -105,6 +105,14 @@ namespace Oxide.Plugins
 
             Console.WriteLine(message);
         }
+
+        public static bool HasFriend(ulong player, ulong friendId)
+        {
+            if (!playerFriends.ContainsKey(player) || !playerFriends[player].Contains(friendId))
+                return false;
+
+            return true;
+        }
         #endregion
 
         #region MySQL Helpers
