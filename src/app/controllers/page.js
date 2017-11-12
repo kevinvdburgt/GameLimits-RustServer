@@ -18,4 +18,8 @@ const chatlog = async (req, res) => {
   });
 };
 
-export default { home, rules, chatlog };
+const blog = (req, res) => {
+  res.render('page/blog');
+};
+
+export default { home, rules, chatlog, blog };

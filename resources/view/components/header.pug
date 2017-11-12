@@ -11,13 +11,13 @@ nav.navbar.is-dark(role='navigation' aria-label='main navigation')
     div.navbar-menu
       div.navbar-start
         a.navbar-item.is-active(href='/') Home
+        a.navbar-item(href='/blog') Blog
         a.navbar-item(href='/rules') Rules
         a.navbar-item(href='/chatlog') Chatlog
-        //- a.navbar-item(href='/') Contact
         a.navbar-item(href='/donate') Donate
           
       div.navbar-end
-        if user && user.is_admin
+        if _user && _user.is_admin
           div.navbar-item.has-dropdown.is-hoverable
             div.navbar-link
               | Admin
@@ -25,14 +25,14 @@ nav.navbar.is-dark(role='navigation' aria-label='main navigation')
               a.navbar-item(href='/admin') Dashboard
               a.navbar-item(href='/admin/players') Players
 
-        if user
+        if _user
           span.navbar-item
-            small #{user.rp} RP
+            small #{_user.rp} RP
           div.navbar-item.has-dropdown.is-hoverable
             div.navbar-link
-              if user.avatar
-                img(src=user.avatar)
-              |&nbsp; #{user.display_name}
+              if _user.avatar
+                img(src=_user.avatar)
+              |&nbsp; #{_user.display_name}
             div.navbar-dropdown
               a.navbar-item(href='/donate') Donate for Reward Points
               a.navbar-item(href='/logout') Logout

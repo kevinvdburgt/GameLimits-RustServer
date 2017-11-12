@@ -1,15 +1,18 @@
 extends ../../template/default
   
 block content
+  section.hero.is-primary.is-bold
+    .hero-body
+      .container
+        h1.title Donate
+
   section.section
     div.container
-      h1.title Donate
-      hr
       div.content
         p Reward Points are game currency that you can buy a variety of things in our in-game store. To replenish Reward Points we offer a variety of options, from credit cards to e-currency.
       hr
 
-      if user
+      if _user
         div.columns
           div.column.is-hidden-mobile
           div.column

@@ -48,7 +48,7 @@ app.use(bodyParser.json());
 // Add locals
 app.use((req, res, next) => {
   res.locals = {
-    user: req.user,
+    _user: req.user,
     moment,
   };
   next();

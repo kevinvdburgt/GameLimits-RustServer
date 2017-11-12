@@ -1,0 +1,24 @@
+extends ../../../template/default
+  
+block content
+  section.hero.is-link.is-bold
+    .hero-body
+      .container
+        h1.title Admin / Players / #{user.display_name}
+
+  section.section
+    div.container
+      div.content
+
+      div.columns
+        div.column.is-one-fifth.has-text-centered
+          img(src=user.avatar)
+          br
+          strong #{user.display_name}
+        
+        div.column
+          div.content
+            a(href=`http://steamcommunity.com/profiles/${user.steam_id}` target='_blank') Steam Profile
+
+      hr
+      

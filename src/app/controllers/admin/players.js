@@ -13,8 +13,25 @@ const index = async (req, res) => {
       user.rp = user.rp === null ? 0 : user.rp;
       return user;
     });
-    
+
   res.render('page/admin/players/index', { users });
 };
 
-export default { index };
+const show = async (req, res, next) => {
+  const { id } = req.params;
+
+  const user = await database
+    .table('users')
+    .where('id', id)
+    .first();
+
+  if (!user) {
+    return next();
+  }
+
+  res.render('page/admin/players/show', {
+    user
+  });
+};
+
+export default { index, show };

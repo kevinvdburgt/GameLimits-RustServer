@@ -4,12 +4,11 @@ block content
   section.hero.is-primary.is-bold
     .hero-body
       .container
-        h1.title Chatlog
+        h1.title Blog
 
   section.section
     div.container
       div.content
-        each log in logs
-          strong #{log.display_name}:
-          |#{log.message}
-          small (#{log.created_at})
+        h2.title Sun, 12 Nov - Hello World!
+        ul
+          li The server is now open for testing ([BETA] Game Limits)

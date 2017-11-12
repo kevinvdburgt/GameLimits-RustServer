@@ -29,6 +29,7 @@ const isAdmin = (req, res, next) => {
 router.get('/', page.home);
 router.get('/rules', page.rules);
 router.get('/chatlog', page.chatlog);
+router.get('/blog', page.blog);
 
 router.get('/donate', donate.show);
 router.post('/donate', donate.post);
@@ -42,5 +43,6 @@ router.get('/logout', isLoggedIn, auth.logout);
 // Admin
 router.get('/admin', isAdmin, adminDashboard.index);
 router.get('/admin/players', isAdmin, adminPlayers.index);
+router.get('/admin/players/:id', isAdmin, adminPlayers.show);
 
 export default router;
