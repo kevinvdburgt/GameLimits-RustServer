@@ -9,6 +9,18 @@ module.exports = {
     apiKey: '8C5E14C740EC1EA6212BA257466A76F7',
   },
 
+  // Server RCON
+  rcon: {
+    host: '192.168.1.102',
+    port: 28016,
+    pass: 'changeme',
+  },
+
+  // Discord
+  discord: {
+    token: 'Mzc5MTc3NDI2MzgwNjUyNTQ0.DOmQPQ.IOPMQ7DuwoRtuvdEN8-2YC7kANo',
+  },
+
   // Database configuration
   database: {
     client: 'mysql',

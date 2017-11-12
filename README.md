@@ -6,6 +6,6 @@
 - [ ] Kit
 - [ ] VIP
 - [ ] Car spawns
-- [ ] Online chat history
-- [ ] Log chat to discord (and reply)
+- [x] Online chat history
+- [x] Log chat to discord (and reply)
 - [ ] Spawn cars at rad zones
