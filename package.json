@@ -10,7 +10,7 @@
     "watch:test": "nodemon --exec babel-node --watch src/ -- src/test.js",
     "webpack:watch": "./node_modules/.bin/webpack --watch",
     "clean": "./node_modules/.bin/rimraf bin/ && ./node_modules/.bin/rimraf public/dist/",
-    "build": "npm run clean && ./node_modules/.bin/webpack -p && ./node_modules/.bin/babel src --out-dir bin",
+    "build": "npm run clean && ./node_modules/.bin/webpack && ./node_modules/.bin/babel src --out-dir bin",
     "docker:push": "npm run build && docker build -t kevinvdburgt/rust-server . && docker push kevinvdburgt/rust-server"
   },
   "repository": {

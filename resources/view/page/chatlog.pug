@@ -9,7 +9,19 @@ block content
   section.section
     div.container
       div.content
-        each log in logs
-          strong #{log.display_name}:
-          |#{log.message}
-          small (#{log.created_at})
+        table.table
+          each log in logs
+            tr
+              td(width='145px')
+                small #{moment(log.created_at).format('DD-MM-YYYY HH:mm')}
+
+              td
+                small #{log.display_name}
+
+              td
+                small #{log.message}
+
+        //- each log in logs
+        //-   strong #{log.display_name}:
+        //-   |#{log.message}
+        //-   small (#{log.created_at})
