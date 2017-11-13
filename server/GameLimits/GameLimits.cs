@@ -1,5 +1,6 @@
 ﻿// Requires: GameLimitsChat
 // Requires: GameLimitsFriends
+// Requires: GameLimitsTeleport
 
 using Oxide.Core.Database;
 using Oxide.Core;
