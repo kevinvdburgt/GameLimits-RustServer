@@ -1,5 +1,6 @@
 import paypal from '../../config/paypal';
 import database from '../../database/database';
+import config from '../../../config';
 
 const show = async (req, res) => {
   res.render('page/donate/show');
@@ -16,27 +17,27 @@ const post = async (req, res) => {
   var paymentInformation = {
     intent: 'sale',
     payer: {
-        payment_method: 'paypal',
+      payment_method: 'paypal',
     },
     redirect_urls: {
-        return_url: 'http://localhost:7777/donate/return',
-        cancel_url: 'http://localhost:7777/donate/cancel',
+      return_url: `${config.host}/donate/return`,
+      cancel_url: `${config.host}/donate/cancel`,
     },
     transactions: [{
-        item_list: {
-            items: [{
-                name: 'Reward Points',
-                sku: `rp-${rp}`,
-                price: `${eur}.00`,
-                currency: 'EUR',
-                quantity: 1,
-            }],
-        },
-        amount: {
-            currency: 'EUR',
-            total: `${eur}.00`,
-        },
-        description: `${rp} Reward Points for Game Limits Rust server.`,
+      item_list: {
+        items: [{
+          name: 'Reward Points',
+          sku: `rp-${rp}`,
+          price: `${eur}.00`,
+          currency: 'EUR',
+          quantity: 1,
+        }],
+      },
+      amount: {
+        currency: 'EUR',
+        total: `${eur}.00`,
+      },
+      description: `${rp} Reward Points for Game Limits Rust server.`,
     }],
   };
 

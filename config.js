@@ -2,6 +2,9 @@ module.exports = {
   // Port on which to run the server
   port: 7777,
 
+  // Host
+  host: 'http://localhost:7777',
+
   // Authentication
   auth: {
     returnUrl: 'http://localhost:7777/login/return',

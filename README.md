@@ -2,6 +2,9 @@
 
 
 ## Todo
+- [ ] Friends
+- [ ] Remove tool
+- [ ] Teleport system
 - [ ] Shop
 - [ ] Kit
 - [ ] VIP
