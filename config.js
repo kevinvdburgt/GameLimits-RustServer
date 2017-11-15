@@ -24,6 +24,12 @@ module.exports = {
     token: 'Mzc5MTc3NDI2MzgwNjUyNTQ0.DOmQPQ.IOPMQ7DuwoRtuvdEN8-2YC7kANo',
   },
 
+  // Slack
+  slack: {
+    token: 'xoxb-4368424119-f5tqnFIhqFkOo6s2eb9K6xwZ',
+    channel: 'glr',
+  },
+
   // Database configuration
   database: {
     client: 'mysql',

@@ -52,6 +52,7 @@ namespace Oxide.Plugins
 
         void OnRconCommand(IPAddress ip, string command, string[] args)
         {
+            // Using the command "gl_chat_admin" to intergratie with the Slack chat client.
             if (command != "gl_chat_admin" || args == null)
                 return;
 

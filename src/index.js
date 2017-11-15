@@ -11,6 +11,7 @@ import config from '../config';
 import routes from './app/routes';
 import './config/passport';
 import './services/playersync';
+import './services/slack';
 
 const app = express();
 const sessionFileStore = SessionFileStore(session);

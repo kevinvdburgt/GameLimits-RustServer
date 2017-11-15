@@ -16,7 +16,11 @@ block content
                 small #{moment(log.created_at).format('DD-MM-YYYY HH:mm')}
 
               td
-                small #{log.display_name}
+                if log.user_id === null
+                  small 
+                    strong #{log.display_name}
+                else
+                  small #{log.display_name}
 
               td
                 small #{log.message}

@@ -1,5 +1,5 @@
 import './services/rcon';
-import './services/discord-chat';
+import './services/slack';
 
 // import Knex from 'knex';
 // import knexfile from './config/knexfile';
