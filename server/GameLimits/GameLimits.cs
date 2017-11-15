@@ -1,11 +1,15 @@
 ﻿// Requires: GameLimitsChat
 // Requires: GameLimitsFriends
-// Requires: GameLimitsTeleport
+// Requires: GameLimitsInfo
+// Requires: GameLimitsShop
 
 using Oxide.Core.Database;
 using Oxide.Core;
 using System.Collections.Generic;
 using System;
+using Oxide.Game.Rust.Cui;
+using UnityEngine;
+using System.Globalization;
 
 namespace Oxide.Plugins
 {
@@ -25,10 +29,14 @@ namespace Oxide.Plugins
         #endregion
 
         #region Configurations
-        private static string MYSQL_HOST = "rust.gamelimits.com";
-        private static string MYSQL_USER = "gamelimits";
-        private static string MYSQL_PASS = "osduhfgp9as7d8yasd";
-        private static string MYSQL_DB = "gamelimits";
+        //private static string MYSQL_HOST = "rust.gamelimits.com";
+        //private static string MYSQL_USER = "gamelimits";
+        //private static string MYSQL_PASS = "osduhfgp9as7d8yasd";
+        //private static string MYSQL_DB = "gamelimits";
+        private static string MYSQL_HOST = "192.168.1.101";
+        private static string MYSQL_USER = "root";
+        private static string MYSQL_PASS = "";
+        private static string MYSQL_DB = "project_rust_gl";
         #endregion
 
         #region Classes
@@ -76,6 +84,178 @@ namespace Oxide.Plugins
             /// </summary>
             public static ushort INFO = 3;
         }
+
+        public static class UI
+        {
+            public static void Add(BasePlayer player, List<CuiElement> elements)
+            {
+                CuiHelper.AddUi(player, elements);
+            }
+
+            public static void Destroy(BasePlayer player, string name)
+            {
+                CuiHelper.DestroyUi(player, name);
+            }
+
+            public static CuiElementContainer CreateElementContainer(string panel, string color, string aMin, string aMax, bool cursor = false, string parent = "Overlay")
+            {
+                var element = new CuiElementContainer()
+                {
+                    {
+                        new CuiPanel
+                        {
+                            Image =
+                            {
+                                Color = color,
+                            },
+                            RectTransform =
+                            {
+                                AnchorMin = aMin,
+                                AnchorMax = aMax,
+                            },
+                            CursorEnabled = cursor
+                        },
+                        new CuiElement().Parent = parent,
+                        panel
+                    }
+                };
+
+                return element;
+            }
+
+            public static void CreateButton(ref CuiElementContainer container, string panel, string color, string text, int size, string aMin, string aMax, string command, TextAnchor align = TextAnchor.MiddleCenter, float fadein = 0.0f)
+            {
+                container.Add(new CuiButton
+                {
+                    Button =
+                    {
+                        Color = color,
+                        Command = command,
+                        FadeIn = fadein,
+                    },
+                    RectTransform =
+                    {
+                        AnchorMin = aMin,
+                        AnchorMax = aMax,
+                    },
+                    Text =
+                    {
+                        Text = text,
+                        FontSize = size,
+                        Align = align,
+                    },
+                }, panel, CuiHelper.GetGuid());
+            }
+
+            public static void CreateLabel(ref CuiElementContainer container, string panel, string text, int size, string aMin, string aMax, TextAnchor align = TextAnchor.MiddleCenter, string color = null, float fadein = 0.0f)
+            {
+                container.Add(new CuiLabel
+                {
+                    Text =
+                    {
+                        Text = text,
+                        FontSize = size,
+                        Align = align,
+                        Color = color,
+                        FadeIn = fadein,
+                    },
+                    RectTransform =
+                    {
+                        AnchorMin = aMin,
+                        AnchorMax = aMax,
+                    }
+                }, panel, CuiHelper.GetGuid());
+            }
+
+            public static void CreatePanel(ref CuiElementContainer container, string panel, string color, string aMin, string aMax, bool cursor = false)
+            {
+                container.Add(new CuiPanel
+                {
+                    Image =
+                    {
+                        Color = color,
+                    },
+                    RectTransform =
+                    {
+                        AnchorMin = aMin,
+                        AnchorMax = aMax,
+                    },
+                    CursorEnabled = cursor,
+                }, panel, CuiHelper.GetGuid());
+            }
+
+            public static void LoadRawImage(ref CuiElementContainer container, string panel, string png, string aMin, string aMax)
+            {
+                container.Add(new CuiElement
+                {
+                    Name = CuiHelper.GetGuid(),
+                    Parent = panel,
+                    Components =
+                    {
+                        new CuiRawImageComponent
+                        {
+                            Png = png
+                        },
+                        new CuiRectTransformComponent
+                        {
+                            AnchorMin = aMin,
+                            AnchorMax = aMax,
+                        }
+                    }
+                });
+            }
+
+            public static void LoadUrlImage(ref CuiElementContainer container, string panel, string url, string aMin, string aMax)
+            {
+                container.Add(new CuiElement
+                {
+                    Name = CuiHelper.GetGuid(),
+                    Parent = panel,
+                    Components =
+                    {
+                        new CuiRawImageComponent
+                        {
+                            Url = url
+                        },
+                        new CuiRectTransformComponent
+                        {
+                            AnchorMin = aMin,
+                            AnchorMax = aMax,
+                        }
+                    }
+                });
+            }
+        }
+
+        //public static class UI
+        //{
+        //    private static bool uiFadeIn = false;
+
+
+
+        //    static public void LoadImage(ref CuiElementContainer container, string panel, string png, string aMin, string aMax)
+        //    {
+        //        container.Add(new CuiElement
+        //        {
+        //            Name = CuiHelper.GetGuid(),
+        //            Parent = panel,
+        //            Components =
+        //            {
+        //                new CuiRawImageComponent {Png = png },
+        //                new CuiRectTransformComponent {AnchorMin = aMin, AnchorMax = aMax }
+        //            }
+        //        });
+        //    }
+        //    static public string Color(string hexColor, float alpha)
+        //    {
+        //        if (hexColor.StartsWith("#"))
+        //            hexColor = hexColor.TrimStart('#');
+        //        int red = int.Parse(hexColor.Substring(0, 2), NumberStyles.AllowHexSpecifier);
+        //        int green = int.Parse(hexColor.Substring(2, 2), NumberStyles.AllowHexSpecifier);
+        //        int blue = int.Parse(hexColor.Substring(4, 2), NumberStyles.AllowHexSpecifier);
+        //        return $"{(double)red / 255} {(double)green / 255} {(double)blue / 255} {alpha}";
+        //    }
+        //}
         #endregion
 
         #region Helpers
