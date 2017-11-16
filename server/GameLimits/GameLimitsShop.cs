@@ -53,6 +53,7 @@ namespace Oxide.Plugins
             });
         }
 
+        #region Server Events
         [ChatCommand("s")]
         private void OnChatCommandS(BasePlayer player, string command, string[] args)
         {
@@ -113,7 +114,9 @@ namespace Oxide.Plugins
         {
             InitializeShop();
         }
+        #endregion
 
+        #region GUI
         public void CreateGUI(BasePlayer player, string page)
         {
             DestroyGUI(player);
@@ -205,7 +208,9 @@ namespace Oxide.Plugins
                 UI.LoadUrlImage(ref container, "gl_shop_item", item.Value.image, $"{min.x + 0.022} {min.y + 0.095}", $"{max.x - 0.022} {max.y - 0.015}");
             UI.CreateButton(ref container, "gl_shop_item", "0.12 0.38 0.57 1", $"Costs: {item.Value.price}", 12, $"{min.x + 0.01} {min.y + 0.017}", $"{max.x - 0.01} {max.y - 0.18}", $"shop buy {item.Key}");
         }
+        #endregion
 
+        #region Functions
         public void BuyItem(BasePlayer player, string productId)
         {
             // Check if the item exists
@@ -237,7 +242,9 @@ namespace Oxide.Plugins
                 });
             });
         }
+        #endregion
 
+        #region Classes
         public class ShopItem
         {
             public string name = null;
@@ -255,5 +262,6 @@ namespace Oxide.Plugins
                 public static short GRID = 1;
             };
         }
+        #endregion
     }
 }
