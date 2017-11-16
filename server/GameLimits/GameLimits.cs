@@ -19,7 +19,7 @@ namespace Oxide.Plugins
     public class GameLimits : RustPlugin
     {
         #region MySQL
-        private static Connection mysqlConnection;
+        public static Connection mysqlConnection;
         private static readonly Core.MySql.Libraries.MySql mysql = Interface.GetMod().GetLibrary<Core.MySql.Libraries.MySql>();
         #endregion
 
@@ -300,6 +300,14 @@ namespace Oxide.Plugins
         public static Sql MBuild(string sql)
         {
             return MBuild(sql, null);
+        }
+
+        public static bool MReady()
+        {
+            if (mysqlConnection == null || mysqlConnection.Con == null)
+                return false;
+
+            return true;
         }
 
         public static Sql MBuild(string sql, params object[] args)
