@@ -2,6 +2,8 @@
 // Requires: GameLimitsFriends
 // Requires: GameLimitsInfo
 // Requires: GameLimitsShop
+// Requires: GameLimitsCars
+// Requires: GameLimitsSkills
 
 using Oxide.Core.Database;
 using Oxide.Core;
@@ -53,12 +55,78 @@ namespace Oxide.Plugins
             public bool admin = false;
 
             /// <summary>
-            /// Check if the player has VIP privileges
+            /// The amount of reward points
             /// </summary>
-            /// <returns>Return true when the that is the case</returns>
-            public bool IsVip()
+            public int rewardPoints = 0;
+
+            /// <summary>
+            /// Load the reward points from the database
+            /// </summary>
+            public void LoadRewardPoints(Action callback = null)
             {
-                return true;
+                MQuery(MBuild("SELECT SUM(points) AS points FROM reward_points WHERE user_id=@0;", id), records =>
+                {
+                    if (records.Count == 0)
+                        return;
+
+                    int points = 0;
+                    if (records[0]["points"].ToString().Length > 0)
+                        points = Convert.ToInt32(records[0]["points"]);
+
+                    rewardPoints = points;
+
+                    callback?.Invoke();
+                });
+            }
+
+            /// <summary>
+            /// A dictionary with subscription names and their expiry dates
+            /// </summary>
+            public Dictionary<string, int> subscriptions = new Dictionary<string, int>();
+
+            /// <summary>
+            /// Check if the user has an active subscription on his name
+            /// </summary>
+            /// <param name="name"></param>
+            /// <returns></returns>
+            public bool HasSubscription(string name)
+            {
+                int timestamp = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
+
+                if (subscriptions.ContainsKey(name) && subscriptions[name] > timestamp)
+                    return true;
+
+                return false;
+            }
+
+            /// <summary>
+            /// Add a subscription to the user
+            /// </summary>
+            /// <param name="name"></param>
+            /// <param name="seconds"></param>
+            public void AddSubscription(string name, int seconds)
+            {
+                MQuery(MBuild("SELECT id, UNIX_TIMESTAMP(expires_at) AS expires_at FROM subscriptions WHERE user_id=@0 AND name=@1 AND expires_at > NOW();", id, name), records =>
+                {
+                    int timestamp = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds + seconds;
+                    if (records.Count == 0)
+                        MInsert(MBuild("INSERT INTO subscriptions (user_id, name, expires_at) VALUES (@0, @1, FROM_UNIXTIME(@2));", id, name, timestamp), (int i) => LoadSubscriptions());
+                    else if (records.Count == 1)
+                        MNonQuery(MBuild("UPDATE subscriptions SET expires_at=FROM_UNIXTIME(@0) WHERE id=@1 LIMIT 1;", Convert.ToInt32(records[0]["expires_at"]) + seconds, Convert.ToInt32(records[0]["id"])), (int i) => LoadSubscriptions());
+                });
+            }
+
+            /// <summary>
+            /// Load the user subscriptions
+            /// </summary>
+            public void LoadSubscriptions()
+            {
+                MQuery(MBuild("SELECT name, UNIX_TIMESTAMP(expires_at) AS expires_at FROM subscriptions WHERE user_id=@0 AND expires_at > NOW();", id), records =>
+                {
+                    subscriptions.Clear();
+                    foreach (var record in records)
+                        subscriptions.Add(Convert.ToString(record["name"]), Convert.ToInt32(record["expires_at"]));
+                });
             }
         }
 
@@ -147,8 +215,11 @@ namespace Oxide.Plugins
                 }, panel, CuiHelper.GetGuid());
             }
 
-            public static void CreateLabel(ref CuiElementContainer container, string panel, string text, int size, string aMin, string aMax, TextAnchor align = TextAnchor.MiddleCenter, string color = null, float fadein = 0.0f)
+            public static void CreateLabel(ref CuiElementContainer container, string panel, string text, int size, string aMin, string aMax, TextAnchor align = TextAnchor.MiddleCenter, string color = null, float fadein = 0.0f, string guid = null)
             {
+                if (guid == null)
+                    guid = CuiHelper.GetGuid();
+
                 container.Add(new CuiLabel
                 {
                     Text =
@@ -164,11 +235,14 @@ namespace Oxide.Plugins
                         AnchorMin = aMin,
                         AnchorMax = aMax,
                     }
-                }, panel, CuiHelper.GetGuid());
+                }, panel, guid);
             }
 
-            public static void CreatePanel(ref CuiElementContainer container, string panel, string color, string aMin, string aMax, bool cursor = false)
+            public static void CreatePanel(ref CuiElementContainer container, string panel, string color, string aMin, string aMax, bool cursor = false, string guid = null)
             {
+                if (guid == null)
+                    guid = CuiHelper.GetGuid();
+
                 container.Add(new CuiPanel
                 {
                     Image =
@@ -181,7 +255,7 @@ namespace Oxide.Plugins
                         AnchorMax = aMax,
                     },
                     CursorEnabled = cursor,
-                }, panel, CuiHelper.GetGuid());
+                }, panel, guid);
             }
 
             public static void LoadRawImage(ref CuiElementContainer container, string panel, string png, string aMin, string aMax)
@@ -229,23 +303,6 @@ namespace Oxide.Plugins
 
         //public static class UI
         //{
-        //    private static bool uiFadeIn = false;
-
-
-
-        //    static public void LoadImage(ref CuiElementContainer container, string panel, string png, string aMin, string aMax)
-        //    {
-        //        container.Add(new CuiElement
-        //        {
-        //            Name = CuiHelper.GetGuid(),
-        //            Parent = panel,
-        //            Components =
-        //            {
-        //                new CuiRawImageComponent {Png = png },
-        //                new CuiRectTransformComponent {AnchorMin = aMin, AnchorMax = aMax }
-        //            }
-        //        });
-        //    }
         //    static public string Color(string hexColor, float alpha)
         //    {
         //        if (hexColor.StartsWith("#"))
@@ -458,6 +515,9 @@ namespace Oxide.Plugins
                 };
 
                 playerInfo.Add(player.userID, info);
+
+                info.LoadSubscriptions();
+                info.LoadRewardPoints();
 
                 Log("Player", $"Player loaded from the database [{player.displayName}] (id: {info.id})", LogType.INFO);
             });
