@@ -28,8 +28,10 @@ namespace Oxide.Plugins
             // Check if the player has special permissions on the server
             string tags = "";
 
-            if (info.IsVip())
+            if (info.HasSubscription("vip"))
                 tags += "<color=#88B71B>[VIP]</color> ";
+
+            info.AddSubscription("vip", 60 * 60);
 
             // Send the chat to the game
             foreach (BasePlayer p in BasePlayer.activePlayerList)

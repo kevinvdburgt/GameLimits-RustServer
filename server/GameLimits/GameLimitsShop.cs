@@ -3,6 +3,8 @@ using System.Net;
 using Oxide.Game.Rust.Cui;
 using UnityEngine;
 using System.Collections.Generic;
+using System;
+using System.Linq;
 
 namespace Oxide.Plugins
 {
@@ -15,39 +17,48 @@ namespace Oxide.Plugins
 
         public void InitializeShop()
         {
+            if (!MReady())
+            {
+                Log("Shop", "Waiting for the MySQL server...", GameLimits.LogType.INFO);
+                timer.Once(2f, () => InitializeShop());
+                return;
+            }
+            
             ShopItems.Clear();
 
-
-
-            // Adding shop items
-            ShopItems.Add("vip_default", new ShopItem()
+            MQuery(MBuild("SELECT * FROM shop_items ORDER BY sort ASC;"), records =>
             {
-                name = "VIP",
-                description = "VIP Member, 10 RP each hour, 50 teleports per day",
-                command = "shop buy vip_default",
-                price = 200,
-                type = ShopItem.Type.GRID,
-            });
+                if (records.Count == 0)
+                {
+                    Log("Shop", "No shop items to load..", GameLimits.LogType.INFO);
+                    return;
+                }
 
-            ShopItems.Add("vip_pro", new ShopItem()
-            {
-                name = "VIP Pro",
-                description = "VIP Member, 10 RP each hour, 50 teleports per day, access to all kits",
-                command = "shop buy vip_pro",
-                price = 900,
-                type = ShopItem.Type.GRID,
-            });
+                Log("Shop", $"Loading {records.Count} shop items", GameLimits.LogType.INFO);
 
-            ShopItems.Add("vip_elite", new ShopItem()
-            {
-                name = "VIP Elite",
-                description = "VIP Member, 10 RP each hour, 50 teleports per day, access to all kits",
-                command = "shop buy vip_elite",
-                price = 1200,
-                type = ShopItem.Type.GRID,
+                foreach (var record in records)
+                {
+                    ShopItems.Add(Convert.ToString(record["key"]), new ShopItem()
+                    {
+                        name = Convert.ToString(record["name"]),
+                        description = Convert.ToString(record["description"]),
+                        image = Convert.ToString(record["image"]),
+                        command = Convert.ToString(record["command"]),
+                        category = Convert.ToString(record["category"]),
+                        price = Convert.ToInt32(record["price"]),
+                        type = Convert.ToInt16(record["type"]),
+                        amount = Convert.ToInt32(record["amount"]),
+                    });
+                }
+
+                //foreach (var player in BasePlayer.activePlayerList)
+                //{
+                //    CreateGUI(player, "popular");
+                //}
             });
         }
 
+        #region Server Events
         [ChatCommand("s")]
         private void OnChatCommandS(BasePlayer player, string command, string[] args)
         {
@@ -86,7 +97,22 @@ namespace Oxide.Plugins
                 case "close":
                     DestroyGUI(player);
                     break;
+
+                case "buy":
+                    if (arg.Args.Length < 2)
+                        break;
+
+                    BuyItem(player, arg.Args[1]);
+                    break;
             }
+        }
+
+        void OnRconCommand(IPAddress ip, string command, string[] args)
+        {
+            if (command != "gl_shop_reload" || args == null)
+                return;
+
+            InitializeShop();   
         }
 
         void Unload()
@@ -101,10 +127,15 @@ namespace Oxide.Plugins
         {
             InitializeShop();
         }
+        #endregion
 
+        #region GUI
         public void CreateGUI(BasePlayer player, string page)
         {
             DestroyGUI(player);
+
+            if (player == null || !playerInfo.ContainsKey(player.userID))
+                return;
 
             // Main container
             var container = UI.CreateElementContainer("gl_shop", "0 0 0 .99", "0.05 0.05", "0.95 0.95", true);
@@ -120,16 +151,22 @@ namespace Oxide.Plugins
             UI.CreateButton(ref container, "gl_shop", "0.12 0.38 0.57 1", "Tools", 12, $"0.44 {(page == "tools" ? "0.95" : "0.96")}", "0.54 0.999", "shop open tools");
             UI.CreateButton(ref container, "gl_shop", "0.12 0.38 0.57 1", "Misc", 12, $"0.55 {(page == "misc" ? "0.95" : "0.96")}", "0.65 0.999", "shop open misc");
             UI.CreateButton(ref container, "gl_shop", "0.12 0.38 0.57 1", "Kits", 12, $"0.66 {(page == "kits" ? "0.95" : "0.96")}", "0.76 0.999", "shop open kits");
-            UI.CreateButton(ref container, "gl_shop", "0.12 0.38 0.57 1", "VIP Packages", 12, $"0.77 {(page == "vip_packages" ? "0.95" : "0.96")}", "0.87 0.999", "shop open vip_packages");
+            UI.CreateButton(ref container, "gl_shop", "0.12 0.38 0.57 1", "VIP Packages", 12, $"0.77 {(page == "vip" ? "0.95" : "0.96")}", "0.87 0.999", "shop open vip");
 
             // Create the shop GUI
             var itemContainer = UI.CreateElementContainer("gl_shop_item", "0 0 0 0", "0.0 0.05", "0.999 0.949", true, "gl_shop");
-            bool created = CreateShopGUI(player, ref itemContainer, ShopItems);
-            if (!created)
-                UI.CreateLabel(ref itemContainer, "gl_shop_item", "Failed to load shop items (ERR: MIXED_SHOPITEM_TYPES)", 16, "0 0", "1 1", TextAnchor.MiddleCenter, "1 0 0 1", 1);
+            var filter = ShopItems.Where(item => item.Value.category == page).ToDictionary(p => p.Key, p => p.Value);
+            string created = CreateShopGUI(player, ref itemContainer, filter);
+            if (created != null)
+                UI.CreateLabel(ref itemContainer, "gl_shop_item", $"Failed to load shop items (ERR: {created})", 16, "0 0", "1 1", TextAnchor.MiddleCenter, "1 0 0 1", 1);
+
+            // Info container
+            var infoContainer = UI.CreateElementContainer("gl_shop_info", "1 1 1 .01", "0.0 0.0", "0.999 0.05", true, "gl_shop");
+            UpdateInfoGUI(player, ref infoContainer);
 
             CuiHelper.AddUi(player, container);
             CuiHelper.AddUi(player, itemContainer);
+            CuiHelper.AddUi(player, infoContainer);
         }
 
         public void DestroyGUI(BasePlayer player)
@@ -137,10 +174,18 @@ namespace Oxide.Plugins
             UI.Destroy(player, "gl_shop");
         }
 
-        public bool CreateShopGUI(BasePlayer player, ref CuiElementContainer container, Dictionary<string, ShopItem> items)
+        public void UpdateInfoGUI(BasePlayer player, ref CuiElementContainer container)
+        {
+            var info = playerInfo[player.userID];
+
+            UI.Destroy(player, "gl_shop_info_text");
+            UI.CreateLabel(ref container, "gl_shop_info", $"You have <color=#0A0>{info.rewardPoints} RP</color>", 12, "0.005 0", "1 1", TextAnchor.MiddleLeft, "1 1 1 1", 0, "gl_shop_info_text");
+        }
+
+        public string CreateShopGUI(BasePlayer player, ref CuiElementContainer container, Dictionary<string, ShopItem> items)
         {
             if (items.Count == 0)
-                return false;
+                return "NO_ITEMS";
 
             // Check if all shop items are the same type, if not, it is kinda impossible to render.
             short type = -1;
@@ -148,7 +193,7 @@ namespace Oxide.Plugins
                 if (type == -1)
                     type = item.Value.type;
                 else if (type != item.Value.type)
-                    return false;
+                    return "MIXED_SHOPITEM_TYPES";
 
             int index = 0;
             foreach (KeyValuePair<string, ShopItem> item in items)
@@ -157,7 +202,7 @@ namespace Oxide.Plugins
                 else if (type == ShopItem.Type.GRID)
                     CreateShopGridGUI(ref container, index++, item);
 
-            return true;
+            return null;
         }
 
         private void CreateShopListGUI(ref CuiElementContainer container, int index, KeyValuePair<string, ShopItem> item)
@@ -187,11 +232,95 @@ namespace Oxide.Plugins
             Vector2 max = min + dim;
 
             UI.CreatePanel(ref container, "gl_shop_item", "1 1 1 0.02", $"{min.x} {min.y}", $"{max.x} {max.y}");
-            UI.CreateLabel(ref container, "gl_shop_item", "Shotgun Trap", 12, $"{min.x} {min.y}", $"{max.x} {max.y - 0.08}", TextAnchor.MiddleCenter, "1 1 1 1", 0);
-            UI.LoadUrlImage(ref container, "gl_shop_item", "http://i.imgur.com/iNFOxbT.png", $"{min.x + 0.022} {min.y + 0.095}", $"{max.x - 0.022} {max.y - 0.015}");
-            UI.CreateButton(ref container, "gl_shop_item", "0.12 0.38 0.57 1", $"Costs: {item.Value.price}", 12, $"{min.x + 0.01} {min.y + 0.017}", $"{max.x - 0.01} {max.y - 0.18}", "shop buy xx");
+            UI.CreateLabel(ref container, "gl_shop_item", $"{item.Value.name}", 12, $"{min.x} {min.y}", $"{max.x} {max.y - 0.08}", TextAnchor.MiddleCenter, "1 1 1 1", 0);
+            if (item.Value.image != null)
+                UI.LoadUrlImage(ref container, "gl_shop_item", item.Value.image, $"{min.x + 0.022} {min.y + 0.095}", $"{max.x - 0.022} {max.y - 0.015}");
+            UI.CreateButton(ref container, "gl_shop_item", "0.12 0.38 0.57 1", $"Costs: {item.Value.price}", 12, $"{min.x + 0.01} {min.y + 0.017}", $"{max.x - 0.01} {max.y - 0.18}", $"shop buy {item.Key}");
+        }
+        #endregion
+
+        #region Functions
+        public void BuyItem(BasePlayer player, string productId)
+        {
+            // Check if the item exists
+            if (!ShopItems.ContainsKey(productId))
+                return;
+
+            PlayerInfo info = playerInfo[player.userID];
+            ShopItem product = ShopItems[productId];
+
+            // Check if there are enough reward points on the users account
+            MQuery(MBuild("SELECT SUM(points) AS points FROM reward_points WHERE user_id=@0;", info.id), records => 
+            {
+                if (records.Count == 0)
+                {
+                    Puts("Failed to fetch");
+                    return;
+                }
+
+                int points = 0;
+                if (records[0]["points"].ToString().Length > 0)
+                    points = Convert.ToInt32(records[0]["points"]);
+
+                if (product.price > points)
+                    return;
+
+                MInsert(MBuild("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", info.id, -product.price, $"Bought {product.name} from the shop"), done =>
+                {
+                    string[] commands = product.command.Split('|');
+                    foreach (string command in commands)
+                        ExecuteCommand(player, command, product);
+
+                    info.LoadRewardPoints();
+                });
+            });
         }
 
+        public void ExecuteCommand(BasePlayer player, string command, ShopItem item)
+        {
+            string[] args = command.Split(' ');
+
+            if (args.Length == 0)
+                return;
+
+            PlayerInfo info = playerInfo[player.userID];
+
+            switch (args[0])
+            {
+                case "subscription":
+                    if (args.Length == 3)
+                        info.AddSubscription(args[1], Convert.ToInt32(args[2]));
+                    break;
+
+                case "give":
+                    if (args.Length != 3)
+                        return;
+
+                    if (player.inventory.containerMain.itemList.Count == 24)
+                    {
+                        player.ChatMessage("Your inventory is full, please clear a slot so we can give you the item!");
+                        timer.Once(5f, () => ExecuteCommand(player, command, item));
+                        return;
+                    }
+
+                    ItemDefinition definition = ItemManager.FindItemDefinition(args[1]);
+                    if (definition == null)
+                        return;
+
+                    int amount = Convert.ToInt32(args[2]);
+
+                    player.inventory.GiveItem(ItemManager.CreateByItemID(definition.itemid, amount), player.inventory.containerMain);
+
+                    break;
+
+                default:
+                    Log("Shop", $"Cannot execute command {command}", GameLimits.LogType.ERROR);
+                    break;
+            }
+        }
+        #endregion
+
+        #region Classes
         public class ShopItem
         {
             public string name = null;
@@ -209,5 +338,6 @@ namespace Oxide.Plugins
                 public static short GRID = 1;
             };
         }
+        #endregion
     }
 }

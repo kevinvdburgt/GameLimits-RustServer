@@ -10,6 +10,16 @@ namespace Oxide.Plugins
 
     public class GameLimitsInfo : RustPlugin
     {
+        #region Server Events
+        [ChatCommand("i")]
+        private void OnChatCommandI(BasePlayer player, string command, string[] args)
+        {
+            if (player == null)
+                return;
+
+            CreateGUI(player);
+        }
+
         [ChatCommand("info")]
         private void OnChatCommandInfo(BasePlayer player, string command, string[] args)
         {
@@ -19,26 +29,24 @@ namespace Oxide.Plugins
             CreateGUI(player);
         }
 
-        [ConsoleCommand("info_close")]
-        private void OnConsoleCommandInfoClose(ConsoleSystem.Arg arg)
-        {
-            if (arg.Connection == null || arg.Connection.player == null)
-                return;
-
-            var player = (BasePlayer)arg.Connection.player;
-
-            DestroyGUI(player);
-        }
-
-        [ConsoleCommand("info_open")]
-        private void OnConsoleCommandInfoSwitch(ConsoleSystem.Arg arg)
+        [ConsoleCommand("info")]
+        private void OnConsoleCommandInfo(ConsoleSystem.Arg arg)
         {
             if (arg.Connection == null || arg.Connection.player == null || !arg.HasArgs())
                 return;
 
             var player = (BasePlayer)arg.Connection.player;
 
-            CreateGUI(player, arg.GetString(0, ""));
+            switch (arg.Args[0])
+            {
+                case "open":
+                    CreateGUI(player, arg.GetString(1, "general"));
+                    break;
+
+                case "close":
+                    DestroyGUI(player);
+                    break;
+            }
         }
 
         void OnPlayerInit(BasePlayer player)
@@ -62,31 +70,42 @@ namespace Oxide.Plugins
                 DestroyGUI(player);
             }
         }
+        #endregion
 
-        private string GeneratePage(BasePlayer player, string page)
+        private void Content(ref CuiElementContainer container, BasePlayer player, string page)
         {
+            string text = "";
             switch (page)
             {
                 case "general":
-                    return $"Hi <color=#f00>{player.displayName}</color>, welcome to the Game Limits Rust server!\n\n" +
+                    text = $"Hi <color=#f00>{player.displayName}</color>, welcome to the Game Limits Rust server!\n\n" +
                         "Wiped on: 11 november\nNext wipe: 14 november";
 
+                    UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.UpperLeft, "1 1 1 1");
+                    break;
+
                 case "rules":
-                    return "We dont have a lot of rules, however the following is strictly forbidden and will results in a instant ban by our automated systems:\n\n" +
+                    text = "We dont have a lot of rules, however the following is strictly forbidden and will results in a instant ban by our automated systems:\n\n" +
                         " - Spamming the chat.\n" +
                         " - Advertising of any goods or services, other resources, media or events not releated to the game.\n" +
                         " - Hacking, cheating or scripting.\n" +
                         " - Using glitched to get an unfair advantage.";
 
-                case "commands":
-                    return "<color=#888>/info</color> opens this screen.";
+                    UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.UpperLeft, "1 1 1 1");
+                    break;
 
-                case "website":
-                    return "Visit our website as https://rust.gamelimits.com/\n\n" +
-                        "You also can read the chatlogs over there";
+                case "commands":
+                    text = "Our server commands:\n\n" +
+                        "<color=#aaa>/i /info</color> Opens this information window\n" +
+                        "<color=#aaa>/s /shop</color> Opens the ingame shop";
+
+                    UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.UpperLeft, "1 1 1 1");
+                    break;
 
                 default:
-                    return $"Sorry. the page <color=#f00>{page}</color> does not exists :(";
+                    text = $"Sorry. the page <color=#f00>{page}</color> does not exists :(";
+                    UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.MiddleCenter, "1 1 1 1");
+                    break;
             }
         }
 
@@ -94,140 +113,22 @@ namespace Oxide.Plugins
         {
             DestroyGUI(player);
 
-            var container = new CuiElementContainer
-            {
-                {
-                    new CuiPanel
-                    {
-                        Image =
-                        {
-                            Color = "0 0 0 .99",
-                        },
-                        RectTransform = {
-                            AnchorMin = "0.05 0.05",
-                            AnchorMax = "0.95 0.95"
-                        },
-                        CursorEnabled = true
-                    },
-                    new CuiElement().Parent = "Overall",
-                    "gl_info"
-                }
-            };
+            // Main container
+            var container = UI.CreateElementContainer("gl_info", "0 0 0 .99", "0.05 0.05", "0.95 0.95", true);
 
-            container.Add(new CuiButton
-            {
-                Button =
-                {
-                    Command = "info_close",
-                    Color = "0.8 0.2 0.2 1",
-                },
-                RectTransform =
-                {
-                    AnchorMin = "0.9 0.95",
-                    AnchorMax = "0.999 0.999"
-                },
-                Text =
-                {
-                    Text = "Close",
-                    FontSize = 12,
-                    Align = TextAnchor.MiddleCenter
-                }
-            }, "gl_info");
+            // Close Info Button
+            UI.CreateButton(ref container, "gl_info", "0.8 0.2 0.2 1", "Close", 12, "0.9 0.96", "0.999 0.999", "info close");
 
-            container.Add(new CuiButton
-            {
-                Button =
-                {
-                    Command = "info_open general",
-                    Color = "0.12 0.38 0.57 1",
-                },
-                RectTransform =
-                {
-                    AnchorMin = "0 0.95",
-                    AnchorMax = "0.1 0.999"
-                },
-                Text =
-                {
-                    Text = "General",
-                    FontSize = 12,
-                    Align = TextAnchor.MiddleCenter
-                }
-            }, "gl_info");
+            // Pages
+            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "General", 12, $"0 {(page == "general" ? "0.95" : "0.96")}", "0.1 0.999", "info open general");
+            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Rules", 12, $"0.11 {(page == "rules" ? "0.95" : "0.96")}", "0.21 0.999", "info open rules");
+            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Commands", 12, $"0.22 {(page == "commands" ? "0.95" : "0.96")}", "0.32 0.999", "info open commands");
+            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Website", 12, $"0.33 {(page == "website" ? "0.95" : "0.96")}", "0.43 0.999", "info open website");
+            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Reward Points", 12, $"0.44 {(page == "rp" ? "0.95" : "0.96")}", "0.54 0.999", "info open rp");
+            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Game Limits", 12, $"0.55 {(page == "gamelimits" ? "0.95" : "0.96")}", "0.65 0.999", "info open gamelimits");
 
-            container.Add(new CuiButton
-            {
-                Button =
-                {
-                    Command = "info_open rules",
-                    Color = "0.12 0.38 0.57 1",
-                },
-                RectTransform =
-                {
-                    AnchorMin = "0.11 0.95",
-                    AnchorMax = "0.21 0.999"
-                },
-                Text =
-                {
-                    Text = "Rules",
-                    FontSize = 12,
-                    Align = TextAnchor.MiddleCenter
-                }
-            }, "gl_info");
-
-            container.Add(new CuiButton
-            {
-                Button =
-                {
-                    Command = "info_open commands",
-                    Color = "0.12 0.38 0.57 1",
-                },
-                RectTransform =
-                {
-                    AnchorMin = "0.22 0.95",
-                    AnchorMax = "0.32 0.999"
-                },
-                Text =
-                {
-                    Text = "Commands",
-                    FontSize = 12,
-                    Align = TextAnchor.MiddleCenter
-                }
-            }, "gl_info");
-
-            container.Add(new CuiButton
-            {
-                Button =
-                {
-                    Command = "info_open website",
-                    Color = "0.12 0.38 0.57 1",
-                },
-                RectTransform =
-                {
-                    AnchorMin = "0.33 0.95",
-                    AnchorMax = "0.43 0.999"
-                },
-                Text =
-                {
-                    Text = "Website",
-                    FontSize = 12,
-                    Align = TextAnchor.MiddleCenter
-                }
-            }, "gl_info");
-
-            container.Add(new CuiLabel
-            {
-                Text =
-                {
-                    Text = GeneratePage(player, page),
-                    FontSize = 16,
-                    Align = TextAnchor.UpperLeft
-                },
-                RectTransform =
-                {
-                    AnchorMin = "0.01 0.01",
-                    AnchorMax = "0.99 0.92"
-                }
-            }, "gl_info");
+            // Content
+            Content(ref container, player, page);
 
             CuiHelper.AddUi(player, container);
         }
