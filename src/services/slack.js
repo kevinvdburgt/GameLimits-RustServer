@@ -36,6 +36,7 @@ rtm.on(RTM_EVENTS.MESSAGE, (message) => {
 });
 
 rcon.on('message', (message) => {
+  console.log(message.message);
   if (message.message.substring(0, 6) === '[Chat]') {
     const msg = message.message.substring(7);
 

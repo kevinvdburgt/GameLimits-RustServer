@@ -1,0 +1,25 @@
+extends ../../../template/default
+  
+block content
+  section.hero.is-link.is-bold
+    .hero-body
+      .container
+        h1.title Admin / Shop / #{item.name}
+
+  section.section
+    div.container
+      div.content
+
+      div.columns
+        div.column.is-one-fifth.has-text-centered
+          img(src=item.image style="max-width: 184px;")
+          br
+          strong #{item.name}
+          p #{item.description}
+        
+        //- div.column
+          div.content
+            a(href=`http://steamcommunity.com/profiles/${user.steam_id}` target='_blank') Steam Profile
+
+      hr
+      

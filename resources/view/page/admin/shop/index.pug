@@ -1,0 +1,44 @@
+extends ../../../template/default
+  
+block content
+  section.hero.is-link.is-bold
+    .hero-body
+      .container
+        h1.title Admin / Shop
+
+  section.section
+    div.container
+      div.content
+        table.table
+          thead
+            tr
+              th Name
+              th Sort
+              th Command
+              th Category
+              th Price
+              th Amount
+              th Type
+              th Created at
+              th Updated at
+              th.has-text-right Actions
+          tbody
+            each item in items
+              tr
+                td
+                  if item.image
+                    img(src=item.image style='max-height: 22px')
+                  | &nbsp; #{item.name}
+                td #{item.sort}
+                td #{item.command}
+                td #{item.category}
+                td #{item.price}
+                td #{item.amount}
+                td #{item.type == '1' ? 'Grid' : 'List'}
+                td #{moment(item.created_at).format('DD-MM-YYYY HH:mm')}
+                td #{moment(item.updated_at).format('DD-MM-YYYY HH:mm')}
+                td.has-text-right
+                  a.button.is-primary.is-small.is-outlined(href=`/admin/shop/${item.id}`) View
+                  a.button.is-primary.is-small.is-outlined(href=`/admin/shop/${item.id}`) Edit
+                  a.button.is-primary.is-small.is-outlined(href=`/admin/shop/${item.id}`) Delete
+                  

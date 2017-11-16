@@ -11,7 +11,7 @@ nav.navbar.is-dark(role='navigation' aria-label='main navigation')
     div.navbar-menu
       div.navbar-start
         a.navbar-item.is-active(href='/') Home
-        a.navbar-item(href='/blog') Blog
+        //- a.navbar-item(href='/blog') Blog
         a.navbar-item(href='/rules') Rules
         a.navbar-item(href='/chatlog') Chatlog
         a.navbar-item(href='/donate') Donate
@@ -24,6 +24,7 @@ nav.navbar.is-dark(role='navigation' aria-label='main navigation')
             div.navbar-dropdown
               a.navbar-item(href='/admin') Dashboard
               a.navbar-item(href='/admin/players') Players
+              a.navbar-item(href='/admin/shop') Shop
 
         if _user
           span.navbar-item
