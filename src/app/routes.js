@@ -7,6 +7,7 @@ import donate from './controllers/donate';
 
 import adminDashboard from './controllers/admin/dashboard';
 import adminPlayers from './controllers/admin/players';
+import adminShop from './controllers/admin/shop';
 
 const router = Router();
 
@@ -44,5 +45,7 @@ router.get('/logout', isLoggedIn, auth.logout);
 router.get('/admin', isAdmin, adminDashboard.index);
 router.get('/admin/players', isAdmin, adminPlayers.index);
 router.get('/admin/players/:id', isAdmin, adminPlayers.show);
+router.get('/admin/shop', isAdmin, adminShop.index);
+router.get('/admin/shop/:id', isAdmin, adminShop.show);
 
 export default router;
