@@ -23,7 +23,7 @@ namespace Oxide.Plugins
                 timer.Once(2f, () => InitializeShop());
                 return;
             }
-            
+
             ShopItems.Clear();
 
             MQuery(MBuild("SELECT * FROM shop_items ORDER BY sort ASC;"), records =>
@@ -48,13 +48,9 @@ namespace Oxide.Plugins
                         price = Convert.ToInt32(record["price"]),
                         type = Convert.ToInt16(record["type"]),
                         amount = Convert.ToInt32(record["amount"]),
+                        id = Convert.ToInt32(record["id"]),
                     });
                 }
-
-                //foreach (var player in BasePlayer.activePlayerList)
-                //{
-                //    CreateGUI(player, "popular");
-                //}
             });
         }
 
@@ -109,10 +105,10 @@ namespace Oxide.Plugins
 
         void OnRconCommand(IPAddress ip, string command, string[] args)
         {
-            if (command != "gl_shop_reload" || args == null)
+            if (command != "gl_shop_reload")
                 return;
 
-            InitializeShop();   
+            InitializeShop();
         }
 
         void Unload()
@@ -137,6 +133,8 @@ namespace Oxide.Plugins
             if (player == null || !playerInfo.ContainsKey(player.userID))
                 return;
 
+            PlayerInfo info = playerInfo[player.userID];
+
             // Main container
             var container = UI.CreateElementContainer("gl_shop", "0 0 0 .99", "0.05 0.05", "0.95 0.95", true);
 
@@ -160,13 +158,12 @@ namespace Oxide.Plugins
             if (created != null)
                 UI.CreateLabel(ref itemContainer, "gl_shop_item", $"Failed to load shop items (ERR: {created})", 16, "0 0", "1 1", TextAnchor.MiddleCenter, "1 0 0 1", 1);
 
-            // Info container
-            var infoContainer = UI.CreateElementContainer("gl_shop_info", "1 1 1 .01", "0.0 0.0", "0.999 0.05", true, "gl_shop");
-            UpdateInfoGUI(player, ref infoContainer);
-
             CuiHelper.AddUi(player, container);
             CuiHelper.AddUi(player, itemContainer);
-            CuiHelper.AddUi(player, infoContainer);
+
+            UpdateInfoGUI(player);
+
+            info.LoadRewardPoints(() => UpdateInfoGUI(player));
         }
 
         public void DestroyGUI(BasePlayer player)
@@ -174,12 +171,20 @@ namespace Oxide.Plugins
             UI.Destroy(player, "gl_shop");
         }
 
-        public void UpdateInfoGUI(BasePlayer player, ref CuiElementContainer container)
+        public void UpdateInfoGUI(BasePlayer player, string message = null)
         {
-            var info = playerInfo[player.userID];
+            PlayerInfo info = playerInfo[player.userID];
 
-            UI.Destroy(player, "gl_shop_info_text");
-            UI.CreateLabel(ref container, "gl_shop_info", $"You have <color=#0A0>{info.rewardPoints} RP</color>", 12, "0.005 0", "1 1", TextAnchor.MiddleLeft, "1 1 1 1", 0, "gl_shop_info_text");
+            UI.Destroy(player, "gl_shop_info");
+
+            var container = UI.CreateElementContainer("gl_shop_info", "1 1 1 .01", "0.0 0.0", "0.999 0.05", true, "gl_shop");
+
+            UI.CreateLabel(ref container, "gl_shop_info", $"You have {info.rewardPoints} RP", 14, "0.01 0", "1 1", TextAnchor.MiddleLeft, "1 1 1 1", 0, "gl_shop_info_text");
+
+            if (message != null)
+                UI.CreateLabel(ref container, "gl_shop_info", message, 14, "0 0", "0.99 1", TextAnchor.MiddleRight, "1 1 1 1", 0, "gl_shop_info_text");
+
+            CuiHelper.AddUi(player, container);
         }
 
         public string CreateShopGUI(BasePlayer player, ref CuiElementContainer container, Dictionary<string, ShopItem> items)
@@ -235,6 +240,8 @@ namespace Oxide.Plugins
             UI.CreateLabel(ref container, "gl_shop_item", $"{item.Value.name}", 12, $"{min.x} {min.y}", $"{max.x} {max.y - 0.08}", TextAnchor.MiddleCenter, "1 1 1 1", 0);
             if (item.Value.image != null)
                 UI.LoadUrlImage(ref container, "gl_shop_item", item.Value.image, $"{min.x + 0.022} {min.y + 0.095}", $"{max.x - 0.022} {max.y - 0.015}");
+            if (item.Value.amount > 1)
+                UI.CreateLabel(ref container, "gl_shop_item", $"{item.Value.amount}x", 12, $"{min.x} {min.y}", $"{max.x - 0.005} {max.y - 0.005}", TextAnchor.UpperRight, "1 1 1 1", 0);
             UI.CreateButton(ref container, "gl_shop_item", "0.12 0.38 0.57 1", $"Costs: {item.Value.price}", 12, $"{min.x + 0.01} {min.y + 0.017}", $"{max.x - 0.01} {max.y - 0.18}", $"shop buy {item.Key}");
         }
         #endregion
@@ -250,7 +257,7 @@ namespace Oxide.Plugins
             ShopItem product = ShopItems[productId];
 
             // Check if there are enough reward points on the users account
-            MQuery(MBuild("SELECT SUM(points) AS points FROM reward_points WHERE user_id=@0;", info.id), records => 
+            MQuery(MBuild("SELECT SUM(points) AS points FROM reward_points WHERE user_id=@0;", info.id), records =>
             {
                 if (records.Count == 0)
                 {
@@ -263,7 +270,10 @@ namespace Oxide.Plugins
                     points = Convert.ToInt32(records[0]["points"]);
 
                 if (product.price > points)
+                {
+                    UpdateInfoGUI(player, $"<color=#B70E30>Not enough Reward Points</color> visit https://rust.gamelimits.com/ to buy RP.");
                     return;
+                }
 
                 MInsert(MBuild("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", info.id, -product.price, $"Bought {product.name} from the shop"), done =>
                 {
@@ -271,8 +281,10 @@ namespace Oxide.Plugins
                     foreach (string command in commands)
                         ExecuteCommand(player, command, product);
 
-                    info.LoadRewardPoints();
+                    info.LoadRewardPoints(() => UpdateInfoGUI(player, $"<color=#0E84B7>Bought</color> {product.name}"));
                 });
+
+                MInsert(MBuild("INSERT INTO shop_history (user_id, shop_item_id) VALUES (@0, @1);", info.id, product.id));
             });
         }
 
@@ -280,7 +292,7 @@ namespace Oxide.Plugins
         {
             string[] args = command.Split(' ');
 
-            if (args.Length == 0)
+            if (args.Length == 0 || player == null || playerInfo.ContainsKey(player.userID))
                 return;
 
             PlayerInfo info = playerInfo[player.userID];
@@ -298,7 +310,6 @@ namespace Oxide.Plugins
 
                     if (player.inventory.containerMain.itemList.Count == 24)
                     {
-                        player.ChatMessage("Your inventory is full, please clear a slot so we can give you the item!");
                         timer.Once(5f, () => ExecuteCommand(player, command, item));
                         return;
                     }
@@ -331,6 +342,7 @@ namespace Oxide.Plugins
             public int price = 0;
             public short type = Type.LIST;
             public int amount = 1;
+            public int id = 0;
 
             public static class Type
             {

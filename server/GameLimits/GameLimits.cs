@@ -4,6 +4,8 @@
 // Requires: GameLimitsShop
 // Requires: GameLimitsCars
 // Requires: GameLimitsSkills
+// Requires: GameLimitsStacks
+// Requires: GameLimitsPlaytime
 
 using Oxide.Core.Database;
 using Oxide.Core;
@@ -76,6 +78,20 @@ namespace Oxide.Plugins
                     rewardPoints = points;
 
                     callback?.Invoke();
+                });
+            }
+
+            /// <summary>
+            /// Give the user a amount of reward points!
+            /// </summary>
+            /// <param name="amout"></param>
+            /// <param name="message"></param>
+            /// <param name="callback"></param>
+            public void GiveRewardPoints(int amout, string message = null, Action callback = null)
+            {
+                MInsert(MBuild("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", id, amout, message), done =>
+                {
+                    LoadRewardPoints(() => callback());
                 });
             }
 
@@ -410,8 +426,6 @@ namespace Oxide.Plugins
 
                 LoadPlayer(player);
             }
-
-            
         }
 
         void OnPlayerInit(BasePlayer player)
@@ -420,6 +434,14 @@ namespace Oxide.Plugins
                 return;
 
             LoadPlayer(player);
+        }
+
+        void OnPlayerDisconnected(BasePlayer player, string reason)
+        {
+            if (player == null || playerInfo.ContainsKey(player.userID))
+                return;
+
+            playerInfo.Remove(player.userID);
         }
         #endregion
 
@@ -511,7 +533,7 @@ namespace Oxide.Plugins
                 PlayerInfo info = new PlayerInfo()
                 {
                     id = Convert.ToInt32(records[0]["id"]),
-                    admin = Convert.ToBoolean(records[0]["is_admin"])
+                    admin = Convert.ToBoolean(records[0]["is_admin"]),
                 };
 
                 playerInfo.Add(player.userID, info);
@@ -521,6 +543,12 @@ namespace Oxide.Plugins
 
                 Log("Player", $"Player loaded from the database [{player.displayName}] (id: {info.id})", LogType.INFO);
             });
+        }
+
+        void SavePlayer(BasePlayer player)
+        {
+            if (player == null || !playerInfo.ContainsKey(player.userID))
+                return;
         }
         #endregion
     }

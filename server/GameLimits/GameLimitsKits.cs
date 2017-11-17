@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace Oxide.Plugins
 {
-    [Info("Teleport", "Game Limits", "1.0.0")]
-    [Description("The teleport module")]
+    [Info("Kits", "Game Limits", "1.0.0")]
+    [Description("The kits module")]
 
-    public class GameLimitsTeleport : RustPlugin
+    public class GameLimitsKits : RustPlugin
     {
-
+        
     }
 }

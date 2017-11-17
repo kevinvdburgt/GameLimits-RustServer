@@ -117,6 +117,14 @@ namespace Oxide.Plugins
                     DestroyGUI((BasePlayer)entity);
             });
         }
+
+        void OnPlayerDisconnected(BasePlayer player, string reason)
+        {
+            if (player == null || playerSkills.ContainsKey(player.userID))
+                return;
+
+            playerSkills.Remove(player.userID);
+        }
         #endregion
 
         #region Classes
@@ -206,7 +214,7 @@ namespace Oxide.Plugins
 
             if (!playerInfo.ContainsKey(player.userID))
             {
-                timer.Once(5f, () => LoadPlayer(player));
+                timer.Once(0.5f, () => LoadPlayer(player));
                 return;
             }
 
