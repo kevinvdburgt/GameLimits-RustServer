@@ -11,126 +11,143 @@ namespace Oxide.Plugins
 
     public class GameLimitsPlaytime : RustPlugin
     {
-        //private Dictionary<ulong, TimeInfo> timeInfo = new Dictionary<ulong, TimeInfo>();
-        //private int lastTick = 0;
+        private Dictionary<ulong, TimeInfo> timeInfo = new Dictionary<ulong, TimeInfo>();
 
-        //#region Server Hooks
-        //private void Init()
-        //{
-        //    foreach (BasePlayer player in BasePlayer.activePlayerList)
-        //        OnPlayerInit(player);
+        #region Server Hooks
+        private void Init()
+        {
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+                if (player != null)
+                    OnPlayerInit(player);
 
-        //    Tick();
-        //}
+            Tick();
+        }
 
-        //private void Unload()
-        //{
-        //    foreach (BasePlayer player in BasePlayer.activePlayerList)
-        //        OnPlayerDisconnected(player, null);
-        //}
+        private void OnPlayerInit(BasePlayer player)
+        {
+            LoadPlayer(player);
+        }
 
-        //private void OnPlayerInit(BasePlayer player)
-        //{
-        //    if (player == null)
-        //        return;
+        private void OnPlayerDisconnected(BasePlayer player, string reason)
+        {
+            if (player == null || !timeInfo.ContainsKey(player.userID))
+                return;
 
-        //    if (!playerInfo.ContainsKey(player.userID))
-        //    {
-        //        timer.Once(1f, () => OnPlayerInit(player));
-        //        return;
-        //    }
+            timeInfo.Remove(player.userID);
+        }
+        #endregion
 
-        //    MQuery(MBuild("SELECT * FROM users WHERE id=@0 LIMIT 1;", playerInfo[player.userID].id), records =>
-        //    {
-        //        if (records.Count == 0)
-        //            return;
+        #region Functions
+        private void LoadPlayer(BasePlayer player)
+        {
+            if (player == null)
+                return;
 
-        //        timeInfo.Add(player.userID, new TimeInfo()
-        //        {
-        //            playtime = Convert.ToDouble(records[0]["playtime"]),
-        //            afktime = Convert.ToDouble(records[0]["afktime"]),
-        //            rewardtime = Convert.ToDouble(records[0]["rewardtime"]),
-        //            lastTime = GrabCurrentTime(),
-        //            lastPos = player.transform.position,
-        //        });
-        //    });
-        //}
+            if (!playerInfo.ContainsKey(player.userID))
+            {
+                Puts($"Waiting for player {player.UserIDString} to be loaded in the core module");
+                timer.Once(1f, () => LoadPlayer(player));
+                return;
+            }
 
-        //private void OnPlayerDisconnected(BasePlayer player, string reason)
-        //{
-        //    timeInfo.Remove(player.userID);
-        //}
-        //#endregion
+            PlayerInfo info = playerInfo[player.userID];
 
-        //#region Functions
-        //private static double GrabCurrentTime() => DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+            MQuery(MBuild("SELECT * FROM users WHERE id=@0 LIMIT 1;", info.id), records =>
+            {
+                if (records.Count == 0)
+                {
+                    Puts($"[Error] Could not the player times for {player.UserIDString}");
+                    return;
+                }
 
-        //private void Tick()
-        //{
-        //    foreach (BasePlayer player in BasePlayer.activePlayerList)
-        //    {
-        //        if (player == null || !timeInfo.ContainsKey(player.userID) || !playerInfo.ContainsKey(player.userID))
-        //            continue;
+                timeInfo.Add(player.userID, new TimeInfo()
+                {
+                    playTime = Convert.ToInt32(records[0]["playtime"]),
+                    afkTime = Convert.ToInt32(records[0]["afktime"]),
+                    rewardTime = Convert.ToInt32(records[0]["rewardtime"]),
+                    lastTime = Timestamp(),
+                    lastPosition = player.transform.position,
+                });
+            });
+        }
 
-        //        TimeInfo tinfo = timeInfo[player.userID];
-        //        PlayerInfo pinfo = playerInfo[player.userID];
+        private void SavePlayer(BasePlayer player)
+        {
+            if (player == null || !timeInfo.ContainsKey(player.userID) || !playerInfo.ContainsKey(player.userID))
+                return;
 
-        //        // Update time
-        //        double time = GrabCurrentTime();
-        //        double timeDiff = time - tinfo.lastTime;
-        //        tinfo.lastTime = time;
+            TimeInfo tinfo = timeInfo[player.userID];
+            PlayerInfo pinfo = playerInfo[player.userID];
 
-        //        // Update position
-        //        Vector3 pos = player.transform.position;
-        //        Vector3 posDiff = pos - tinfo.lastPos;
-        //        tinfo.lastPos = pos;
+            MNonQuery(MBuild("UPDATE users SET playtime=@0, afktime=@1, rewardtime=@2 WHERE id=@3 LIMIT 1;", tinfo.playTime, tinfo.afkTime, tinfo.rewardTime, pinfo.id));
+        }
 
-        //        if (posDiff.magnitude > 0.5f)
-        //            tinfo.playtime += timeDiff;
-        //        else
-        //            tinfo.afktime += timeDiff;
+        private void Tick()
+        {
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+            {
+                if (player == null || !timeInfo.ContainsKey(player.userID) || !playerInfo.ContainsKey(player.userID))
+                    continue;
 
-        //        // Hourly rewards
-        //        //double rewardInterval = 60 * 60;
-        //        double rewardInterval = 60;
-        //        if ((tinfo.playtime + tinfo.afktime) - tinfo.rewardtime > rewardInterval)
-        //        {
-        //            Reward(player);
-        //            tinfo.rewardtime += rewardInterval;
-        //        }
+                TimeInfo info = timeInfo[player.userID];
 
-        //        // Save into the database
-        //        MNonQuery(MBuild("UPDATE users SET playtime=@0, afktime=@1, rewardtime=@2 WHERE id=@3 LIMIT 1;", tinfo.playtime, tinfo.afktime, tinfo.rewardtime, pinfo.id));
-        //    }
-            
-        //    timer.Once(60f, () => Tick());
-        //}
+                // Update the time
+                int time = Timestamp();
+                int diffTime = time - info.lastTime;
+                info.lastTime = time;
 
-        ///// <summary>
-        ///// Called when the player hass been on the server each hour
-        ///// </summary>
-        ///// <param name="player"></param>
-        //private void Reward(BasePlayer player)
-        //{
-        //    int reward = 20;
+                // Update the position
+                Vector3 position = player.transform.position;
+                Vector3 diffPosition = position - info.lastPosition;
+                info.lastPosition = position;
 
-        //    PlayerInfo pinfo = playerInfo[player.userID];
+                // Apply the tick times
+                if (diffPosition.magnitude > 0.5f)
+                    info.playTime += diffTime;
+                else
+                    info.afkTime += diffTime;
 
-        //    pinfo.GiveRewardPoints(reward, "Deposited for playing each hour on the server");
+                if ((info.playTime + info.afkTime) - info.rewardTime > info.rewardInterval)
+                {
+                    info.rewardTime = (info.playTime + info.afkTime);
+                    Reward(player);
+                    Puts($"Reward mark at {(info.playTime + info.afkTime)} seconds ({info.playTime} playtime, {info.afkTime} afktime) for {player.displayName}");
+                }
 
-        //    PrintToChat(player, $"<color=\"#DD32AA\">{reward} RP</color>have been deposited to your account!");
-        //}
-        //#endregion
+                // @TODO: Maybe move this to another place?
+                SavePlayer(player);
+            }
 
-        //#region Classes
-        //private class TimeInfo
-        //{
-        //    public double playtime = 0;
-        //    public double afktime = 0;
-        //    public double rewardtime = 0;
-        //    public double lastTime;
-        //    public Vector3 lastPos;
-        //}
-        //#endregion
+            timer.Once(60f, () => Tick());
+        }
+
+        private void Reward(BasePlayer player)
+        {
+            if (player == null || !playerInfo.ContainsKey(player.userID))
+                return;
+
+            PlayerInfo info = playerInfo[player.userID];
+            int rewardPoints = 2;
+
+            if (info.HasSubscription("vip"))
+                rewardPoints = 10;
+
+            info.GiveRewardPoints(rewardPoints, $"You have been rewarded {rewardPoints} RP for playing on this server.");
+            PrintToChat(player, $"You have been rewarded <color=#0E84B7>{rewardPoints} RP</color> for playing on this server.");
+        }
+        #endregion
+
+
+        #region Classes
+        private class TimeInfo
+        {
+            public int rewardInterval = 60 * 60;
+            public int playTime = 0;
+            public int afkTime = 0;
+            public int rewardTime = 0;
+            public int lastTime;
+            public Vector3 lastPosition;
+        }
+        #endregion
     }
 }

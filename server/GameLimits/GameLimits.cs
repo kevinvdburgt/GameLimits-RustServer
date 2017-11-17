@@ -34,14 +34,14 @@ namespace Oxide.Plugins
         #endregion
 
         #region Configurations
-        //private static string MYSQL_HOST = "rust.gamelimits.com";
-        //private static string MYSQL_USER = "gamelimits";
-        //private static string MYSQL_PASS = "osduhfgp9as7d8yasd";
-        //private static string MYSQL_DB = "gamelimits";
-        private static string MYSQL_HOST = "192.168.1.101";
-        private static string MYSQL_USER = "root";
-        private static string MYSQL_PASS = "";
-        private static string MYSQL_DB = "project_rust_gl";
+        private static string MYSQL_HOST = "rust.gamelimits.com";
+        private static string MYSQL_USER = "gamelimits";
+        private static string MYSQL_PASS = "osduhfgp9as7d8yasd";
+        private static string MYSQL_DB = "gamelimits";
+        //private static string MYSQL_HOST = "192.168.1.101";
+        //private static string MYSQL_USER = "root";
+        //private static string MYSQL_PASS = "";
+        //private static string MYSQL_DB = "project_rust_gl";
         #endregion
 
         #region Classes
@@ -88,11 +88,13 @@ namespace Oxide.Plugins
             /// <param name="amout"></param>
             /// <param name="message"></param>
             /// <param name="callback"></param>
-            public void GiveRewardPoints(int amout, string message = null, Action callback = null)
+            public void GiveRewardPoints(int amount, string message = null, Action callback = null)
             {
-                MInsert(MBuild("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", id, amout, message), done =>
-                {
-                    LoadRewardPoints(() => callback());
+                MInsert(MBuild("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", id, amount, message), done => {
+                    LoadRewardPoints(() =>
+                    {
+                        callback?.Invoke();
+                    });
                 });
             }
 
@@ -304,6 +306,11 @@ namespace Oxide.Plugins
 
             return true;
         }
+
+        public static int Timestamp()
+        {
+            return (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+        }
         #endregion
 
         #region MySQL Helpers
@@ -375,7 +382,7 @@ namespace Oxide.Plugins
 
         void OnPlayerDisconnected(BasePlayer player, string reason)
         {
-            if (player == null || playerInfo.ContainsKey(player.userID))
+            if (player == null || !playerInfo.ContainsKey(player.userID))
                 return;
 
             playerInfo.Remove(player.userID);

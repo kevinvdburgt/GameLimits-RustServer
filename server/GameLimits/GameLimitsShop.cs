@@ -292,10 +292,12 @@ namespace Oxide.Plugins
         {
             string[] args = command.Split(' ');
 
-            if (args.Length == 0 || player == null || playerInfo.ContainsKey(player.userID))
+            if (args.Length == 0 || player == null || !playerInfo.ContainsKey(player.userID))
                 return;
 
             PlayerInfo info = playerInfo[player.userID];
+
+            Puts($"Shop execution for {player.displayName}: {command}");
 
             switch (args[0])
             {
