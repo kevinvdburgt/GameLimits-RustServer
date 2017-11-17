@@ -6,6 +6,7 @@
 // Requires: GameLimitsSkills
 // Requires: GameLimitsStacks
 // Requires: GameLimitsPlaytime
+// Requires: GameLimitsSpawn
 
 using Oxide.Core.Database;
 using Oxide.Core;
@@ -144,29 +145,6 @@ namespace Oxide.Plugins
                         subscriptions.Add(Convert.ToString(record["name"]), Convert.ToInt32(record["expires_at"]));
                 });
             }
-        }
-
-        public static class LogType
-        {
-            /// <summary>
-            /// Use for default messages
-            /// </summary>
-            public static ushort DEFAULT = 0;
-
-            /// <summary>
-            /// Use for success messages
-            /// </summary>
-            public static ushort OK = 1;
-
-            /// <summary>
-            /// Use for error messages
-            /// </summary>
-            public static ushort ERROR = 2;
-
-            /// <summary>
-            /// Use for info / pending messages
-            /// </summary>
-            public static ushort INFO = 3;
         }
 
         public static class UI
@@ -316,50 +294,9 @@ namespace Oxide.Plugins
                 });
             }
         }
-
-        //public static class UI
-        //{
-        //    static public string Color(string hexColor, float alpha)
-        //    {
-        //        if (hexColor.StartsWith("#"))
-        //            hexColor = hexColor.TrimStart('#');
-        //        int red = int.Parse(hexColor.Substring(0, 2), NumberStyles.AllowHexSpecifier);
-        //        int green = int.Parse(hexColor.Substring(2, 2), NumberStyles.AllowHexSpecifier);
-        //        int blue = int.Parse(hexColor.Substring(4, 2), NumberStyles.AllowHexSpecifier);
-        //        return $"{(double)red / 255} {(double)green / 255} {(double)blue / 255} {alpha}";
-        //    }
-        //}
         #endregion
 
         #region Helpers
-        public static void Log(string module, string message, ushort state = 0, bool print = true)
-        {
-            switch (state)
-            {
-                case 1:
-                    Console.ForegroundColor = ConsoleColor.Green;
-                    break;
-
-                case 2:
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    break;
-
-                case 3:
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    break;
-            }
-
-            if (!print)
-                return;
-
-            Console.Write($"[{module}] ");
-
-            if (state > 0)
-                Console.ResetColor();
-
-            Console.WriteLine(message);
-        }
-
         public static bool HasFriend(ulong player, ulong friendId)
         {
             if (!playerFriends.ContainsKey(player) || !playerFriends[player].Contains(friendId))
@@ -451,14 +388,14 @@ namespace Oxide.Plugins
         /// </summary>
         void MySQLSetup()
         {
-            Log("MySQL", "Connecting to the database...", LogType.INFO);
+            Puts("Connecting to the database...");
 
             try
             {
                 mysqlConnection = mysql.OpenDb(MYSQL_HOST, 3306, MYSQL_DB, MYSQL_USER, MYSQL_PASS, this);
                 if (mysqlConnection == null && mysqlConnection.Con == null)
                 {
-                    Log("MySQL", "Cannot connect to the server", LogType.ERROR);
+                    Puts("Cannot connect to the server");
                     return;
                 }
 
@@ -466,12 +403,12 @@ namespace Oxide.Plugins
             }
             catch (Exception e)
             {
-                Log("MySQL", $"Exception {e.Message}", LogType.ERROR);
+                Puts($"Exception {e.Message}");
                 return;
             }
 
 
-            Log("MySQL", "Connection successfull", LogType.OK);
+            Puts("Connection successfull");
         }
 
         /// <summary>
@@ -479,11 +416,11 @@ namespace Oxide.Plugins
         /// </summary>
         void LoadFriends()
         {
-            Log("Friends", "Loading friends list from the database..", LogType.INFO);
+            Puts("Loading friends list from the database..");
 
             MQuery(MBuild("SELECT a.steam_id AS uid, b.steam_id AS with_uid FROM friends LEFT JOIN users AS a ON friends.user_id = a.id LEFT JOIN users AS b ON friends.with_user_id = b.id;"), records =>
             {
-                Log("Friends", $"Found {records.Count} friend records!", LogType.OK);
+                Puts("Friends", $"Found {records.Count} friend records!");
 
                 playerFriends.Clear();
 
@@ -511,20 +448,20 @@ namespace Oxide.Plugins
         void LoadPlayer(BasePlayer player, bool created = false)
         {
             if (!created)
-                Log("Player", $"Loading player information for [{player.displayName}]", LogType.INFO);
+                Puts($"Loading player information for [{player.displayName}]");
 
             MQuery(MBuild("SELECT * FROM users WHERE steam_id=@0 LIMIT 1;", player.UserIDString), records =>
             {
                 if (records.Count == 0 && created == true)
                 {
-                    Log("Player", $"Cannot find the player after creation. Player is kicked!", LogType.ERROR);
+                    Puts($"Cannot find the player after creation. Player is kicked!");
                     player.Kick("Account creation failed. Please contact us at rust.gamelimits.com");
                     return;
                 }
 
                 if (records.Count == 0)
                 {
-                    Log("Player", $"Creating new player record for [{player.displayName}]", LogType.INFO);
+                    Puts($"Creating new player record for [{player.displayName}]");
                     MInsert(MBuild("INSERT INTO users (steam_id, display_name) VALUES (@0, @1)", player.UserIDString, player.displayName));
                     LoadPlayer(player, true);
                     return;
@@ -541,7 +478,7 @@ namespace Oxide.Plugins
                 info.LoadSubscriptions();
                 info.LoadRewardPoints();
 
-                Log("Player", $"Player loaded from the database [{player.displayName}] (id: {info.id})", LogType.INFO);
+                Puts($"Player loaded from the database [{player.displayName}] (id: {info.id})");
             });
         }
 

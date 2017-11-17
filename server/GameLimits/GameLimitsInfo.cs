@@ -14,10 +14,7 @@ namespace Oxide.Plugins
         [ChatCommand("i")]
         private void OnChatCommandI(BasePlayer player, string command, string[] args)
         {
-            if (player == null)
-                return;
-
-            CreateGUI(player);
+            OnChatCommandInfo(player, command, args);
         }
 
         [ChatCommand("info")]
@@ -35,7 +32,7 @@ namespace Oxide.Plugins
             if (arg.Connection == null || arg.Connection.player == null || !arg.HasArgs())
                 return;
 
-            var player = (BasePlayer)arg.Connection.player;
+            BasePlayer player = (BasePlayer)arg.Connection.player;
 
             switch (arg.Args[0])
             {
@@ -66,9 +63,8 @@ namespace Oxide.Plugins
         void Unload()
         {
             foreach (var player in BasePlayer.activePlayerList)
-            {
-                DestroyGUI(player);
-            }
+                if (player != null)
+                    DestroyGUI(player);
         }
         #endregion
 
@@ -79,7 +75,9 @@ namespace Oxide.Plugins
             {
                 case "general":
                     text = $"Hi <color=#f00>{player.displayName}</color>, welcome to the Game Limits Rust server!\n\n" +
-                        "Wiped on: 11 november\nNext wipe: 14 november";
+                        "Wiped on: 16 november\nNext wipe: 7 december\n\n" +
+                        "This server is still under heavy development!\n\n" +
+                        "Visit <color=#0E84B7>rust.gamelimits.com</color> for more information.";
 
                     UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.UpperLeft, "1 1 1 1");
                     break;
@@ -122,11 +120,11 @@ namespace Oxide.Plugins
 
             // Pages
             UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "General", 12, $"0 {(page == "general" ? "0.95" : "0.96")}", "0.1 0.999", "info open general");
-            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Rules", 12, $"0.11 {(page == "rules" ? "0.95" : "0.96")}", "0.21 0.999", "info open rules");
-            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Commands", 12, $"0.22 {(page == "commands" ? "0.95" : "0.96")}", "0.32 0.999", "info open commands");
-            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Website", 12, $"0.33 {(page == "website" ? "0.95" : "0.96")}", "0.43 0.999", "info open website");
-            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Reward Points", 12, $"0.44 {(page == "rp" ? "0.95" : "0.96")}", "0.54 0.999", "info open rp");
-            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Game Limits", 12, $"0.55 {(page == "gamelimits" ? "0.95" : "0.96")}", "0.65 0.999", "info open gamelimits");
+            //UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Rules", 12, $"0.11 {(page == "rules" ? "0.95" : "0.96")}", "0.21 0.999", "info open rules");
+            //UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Commands", 12, $"0.22 {(page == "commands" ? "0.95" : "0.96")}", "0.32 0.999", "info open commands");
+            //UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Website", 12, $"0.33 {(page == "website" ? "0.95" : "0.96")}", "0.43 0.999", "info open website");
+            //UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Reward Points", 12, $"0.44 {(page == "rp" ? "0.95" : "0.96")}", "0.54 0.999", "info open rp");
+            //UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Game Limits", 12, $"0.55 {(page == "gamelimits" ? "0.95" : "0.96")}", "0.65 0.999", "info open gamelimits");
 
             // Content
             Content(ref container, player, page);

@@ -9,9 +9,9 @@ namespace Oxide.Plugins
     public class GameLimitsChat : RustPlugin
     {
         #region Server Events
-        object OnPlayerChat(ConsoleSystem.Arg args)
+        private object OnPlayerChat(ConsoleSystem.Arg args)
         {
-            var player = (BasePlayer)args.Connection.player;
+            BasePlayer player = (BasePlayer)args.Connection.player;
 
             if (player == null)
                 return null;
@@ -41,8 +41,7 @@ namespace Oxide.Plugins
             }
 
             // Send the chat to the console
-            Log("Chat", $"[{player.displayName}] {string.Join(" ", args.Args)}", LogType.DEFAULT, false);
-            Puts($"[{player.displayName}] {string.Join(" ", args.Args)}"); // Using Puts because RCON needs this info..
+            Puts($"[{player.displayName}] {string.Join(" ", args.Args)}");
 
             // Send the chat to the database
             MInsert(MBuild("INSERT INTO chatlogs (user_id, display_name, message) VALUES (@0, @1, @2);", info.id, player.displayName, string.Join(" ", args.Args)));
@@ -63,16 +62,13 @@ namespace Oxide.Plugins
         void SendAdminMessage(string message)
         {
             // Send the chat to the game
-            foreach (BasePlayer p in BasePlayer.activePlayerList)
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
             {
-                if (p == null)
+                if (player == null)
                     continue;
 
-                p.SendConsoleCommand("chat.add", 0, $"<color=#B70E84>Admin</color> {message}");
+                player.SendConsoleCommand("chat.add", 0, $"<color=#B70E84>Admin</color> {message}");
             }
-
-            // Send the chat to the console
-            Log("Chat", $"[Admin] {message}");
 
             // Send the chat to the database
             MInsert(MBuild("INSERT INTO chatlogs (display_name, message) VALUES (@0, @1);", "Admin", message));
