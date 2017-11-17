@@ -21,8 +21,23 @@ namespace Oxide.Plugins
                 return;
 
             var player = (BasePlayer)entity;
+            long penalty = 200;
 
-            PrintToChat(player, "Skill XP lost");
+            foreach (Skill skill in Skills.all)
+            {
+                long xp = playerSkills[player.userID].GetXp(skill.code);
+
+                if (xp < penalty)
+                    return;
+
+                playerSkills[player.userID].SetXp(skill.code, xp - penalty);
+                playerSkills[player.userID].SetLevel(skill.code, GetXpLevel(xp - penalty));
+
+                PrintToChat(player, $"<color=\"#DD32AA\">{skill.name}</color> -{penalty} XP Penalty for dying.");
+
+                UpdateGUI(player, skill);
+            }
+                
         }
 
         void OnDispenserGather(ResourceDispenser dispenser, BaseEntity entity, Item item)
@@ -102,6 +117,14 @@ namespace Oxide.Plugins
                     DestroyGUI((BasePlayer)entity);
             });
         }
+
+        void OnPlayerDisconnected(BasePlayer player, string reason)
+        {
+            if (player == null || playerSkills.ContainsKey(player.userID))
+                return;
+
+            playerSkills.Remove(player.userID);
+        }
         #endregion
 
         #region Classes
@@ -158,7 +181,7 @@ namespace Oxide.Plugins
             public long GetXp(string code)
             {
                 if (!xp.ContainsKey(code))
-                    return 0;
+                    return 10;
 
                 return xp[code];
             }
@@ -171,7 +194,7 @@ namespace Oxide.Plugins
             public long GetLevel(string code)
             {
                 if (!xp.ContainsKey(code))
-                    return 0;
+                    return 1;
 
                 return level[code];
             }
@@ -191,7 +214,7 @@ namespace Oxide.Plugins
 
             if (!playerInfo.ContainsKey(player.userID))
             {
-                timer.Once(5f, () => LoadPlayer(player));
+                timer.Once(0.5f, () => LoadPlayer(player));
                 return;
             }
 
@@ -292,15 +315,15 @@ namespace Oxide.Plugins
             var level = pskill.GetLevel(skill.code);
             var xp = pskill.GetXp(skill.code);
             
-            item.amount = Mathf.CeilToInt((float)(item.amount * (1 + 2 * 0.1 * (level - 1))));
+            item.amount = Mathf.CeilToInt((float)(item.amount * (1 + 1 * 0.1 * (level - 1))));
 
-            xp += 30;
+            xp += 5;
 
             if (xp > GetLevelXp(level + 1))
             {
                 level = GetXpLevel(xp);
 
-                // @TODO: Send message about the increased level
+                PrintToChat(player, $"<color=\"#DD32AA\">{skill.name}</color> level up!\nLevel {level} ({xp}/{GetLevelXp(level + 1)} XP).\n<color=\"#DD32AA\">{ (((1 + 1 * 0.1 * (level - 1)) * 100).ToString("0.##"))}%</color> bonus");
             }
 
             pskill.SetLevel(skill.code, level);

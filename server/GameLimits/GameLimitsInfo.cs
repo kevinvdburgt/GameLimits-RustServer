@@ -97,7 +97,8 @@ namespace Oxide.Plugins
                 case "commands":
                     text = "Our server commands:\n\n" +
                         "<color=#aaa>/i /info</color> Opens this information window\n" +
-                        "<color=#aaa>/s /shop</color> Opens the ingame shop";
+                        "<color=#aaa>/s /shop</color> Opens the ingame shop\n" +
+                        "<color=#aaa>/f /friend</color> Opens the friend menu\n";
 
                     UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.UpperLeft, "1 1 1 1");
                     break;

@@ -1,6 +1,9 @@
-﻿using ProtoBuf;
+﻿using Oxide.Game.Rust.Cui;
+using ProtoBuf;
 using System;
 using System.Collections.Generic;
+using UnityEngine;
+using System.Linq;
 using static Oxide.Plugins.GameLimits;
 
 namespace Oxide.Plugins
@@ -11,6 +14,103 @@ namespace Oxide.Plugins
     public class GameLimitsFriends : RustPlugin
     {
         #region Server Events
+        [ConsoleCommand("friend")]
+        private void OnConsoleCommandInfoClose(ConsoleSystem.Arg arg)
+        {
+            if (arg.Connection == null || arg.Connection.player == null || !arg.HasArgs())
+                return;
+
+            var player = (BasePlayer)arg.Connection.player;
+            PlayerInfo info = playerInfo[player.userID];
+
+            switch (arg.Args[0])
+            {
+                case "open":
+                    if (arg.Args.Length < 2)
+                        break;
+                    
+                    GetFriends(player, friends => 
+                        CreateGUI(player, friends, Convert.ToInt32(arg.Args[1])), true);
+                    break;
+
+                case "close":
+                    DestroyGUI(player);
+                    break;
+
+                case "add":
+                    if (arg.Args.Length < 2)
+                        break;
+
+                    DestroyGUI(player);
+
+                    MQuery(MBuild("SELECT * FROM users WHERE steam_id=@0 LIMIT 1;", Convert.ToUInt64(arg.Args[1])), records =>
+                    {
+                        if (records.Count == 0)
+                        {
+                            SendReply(player, $"Player not found");
+                            return;
+                        }
+
+                        int foundUser = Convert.ToInt32(records[0]["id"]);
+                        ulong foundUserId = Convert.ToUInt64(records[0]["steam_id"]);
+
+                        if (foundUser == info.id)
+                        {
+                            SendReply(player, "You cannot add yourself to your friendlist.");
+                            return;
+                        }
+
+                        AddFriend(player, foundUserId, foundUser, result =>
+                        {
+                            if (result == 0)
+                                SendReply(player, $"{records[0]["display_name"]} is already in your friends list.");
+                            else
+                                SendReply(player, $"{records[0]["display_name"]} added to your friendlist.");
+                        });
+                    });
+                    break;
+
+                case "remove":
+                    if (arg.Args.Length < 2)
+                        break;
+
+                    DestroyGUI(player);
+
+                    MQuery(MBuild("SELECT * FROM users WHERE steam_id=@0 LIMIT 1;", Convert.ToUInt64(arg.Args[1])), records =>
+                    {
+                        if (records.Count == 0)
+                        {
+                            SendReply(player, $"Player not found");
+                            return;
+                        }
+
+                        int foundUser = Convert.ToInt32(records[0]["id"]);
+                        ulong foundUserId = Convert.ToUInt64(records[0]["steam_id"]);
+
+                        if (foundUser == info.id)
+                        {
+                            SendReply(player, "You cannot remove yourself from your friendlist.");
+                            return;
+                        }
+
+                        RemoveFriend(player, foundUserId, foundUser, result =>
+                        {
+                            if (result == 0)
+                                SendReply(player, $"{records[0]["display_name"]} is not in your friendlist.");
+                            else
+                                SendReply(player, $"{records[0]["display_name"]} removed from your friendlist.");
+                        });
+                    });
+                    break;
+            }
+        }
+
+        [ChatCommand("f")]
+        private void OnFChatCommand(BasePlayer player, string command, string[] args)
+        {
+            OnFriendChatCommand(player, command, args);
+        }
+
         [ChatCommand("friend")]
         private void OnFriendChatCommand(BasePlayer player, string command, string[] args)
         {
@@ -24,6 +124,8 @@ namespace Oxide.Plugins
 
             if (args.Length < 1 || args.Length == 1 && !(args[0].ToLower() == "list"))
             {
+                GetFriends(player, friends =>
+                       CreateGUI(player, friends, 0), true);
                 SendReply(player, syntax);
                 return;
             }
@@ -90,20 +192,12 @@ namespace Oxide.Plugins
                             return;
                         }
 
-                        MQuery(MBuild("SELECT * FROM friends WHERE user_id=@0 AND with_user_id=@1 LIMIT 1;", info.id, foundUser), records2 =>
+                        AddFriend(player, foundUserId, foundUser, result =>
                         {
-                            if (records2.Count > 0)
-                            {
+                            if (result == 0)
                                 SendReply(player, $"{records[0]["display_name"]} is already in your friends list.");
-                                return;
-                            }
-
-                            MInsert(MBuild("INSERT INTO friends (user_id, with_user_id) VALUES (@0, @1);", info.id, foundUser), records3 => 
-                            {
-                                SendReply(player, $"{records[0]["display_name"]} added to your friends list.");
-
-                                AddFriend(player, foundUserId);
-                            });
+                            else
+                                SendReply(player, $"{records[0]["display_name"]} added to your friendlist.");
                         });
                     });
                     break;
@@ -133,20 +227,12 @@ namespace Oxide.Plugins
                             return;
                         }
 
-                        MQuery(MBuild("SELECT * FROM friends WHERE user_id=@0 AND with_user_id=@1 LIMIT 1;", info.id, foundUser), records2 =>
+                        RemoveFriend(player, foundUserId, foundUser, result =>
                         {
-                            if (records2.Count == 0)
-                            {
-                                SendReply(player, $"{records[0]["display_name"]} is not on your friends list.");
-                                return;
-                            }
-
-                            MDelete(MBuild("DELETE FROM friends WHERE id=@0 LIMIT 1;", records2[0]["id"]), records3 =>
-                            {
-                                SendReply(player, $"{records[0]["display_name"]} removed from your friends list.");
-
-                                RemoveFriend(player, foundUserId);
-                            });
+                            if (result == 0)
+                                SendReply(player, $"{records[0]["display_name"]} is not in your friendlist.");
+                            else
+                                SendReply(player, $"{records[0]["display_name"]} removed from your friendlist.");
                         });
                     });
                     break;
@@ -183,7 +269,7 @@ namespace Oxide.Plugins
             if (HasFriend(@lock.GetParentEntity().OwnerID, player.userID))
             {
                 var codeLock = (CodeLock)@lock;
-                var whitelistPlayers = (List<ulong>) codeLock.whitelistPlayers;
+                var whitelistPlayers = (List<ulong>)codeLock.whitelistPlayers;
                 if (!whitelistPlayers.Contains(player.userID))
                     whitelistPlayers.Add(player.userID);
             }
@@ -192,23 +278,168 @@ namespace Oxide.Plugins
         #endregion
 
         #region Functions
-        void AddFriend(BasePlayer player, ulong friendUid)
+        void AddFriend(BasePlayer player, ulong friendUid, int friendId, Action<int> callback = null)
         {
-            if (playerFriends.ContainsKey(player.userID))
-                playerFriends[player.userID].Add(friendUid);
-            else
-                playerFriends.Add(player.userID, new HashSet<ulong> { friendUid });
+            PlayerInfo info = playerInfo[player.userID];
+
+            MQuery(MBuild("SELECT * FROM friends WHERE user_id=@0 AND with_user_id=@1 LIMIT 1;", info.id, friendId), records =>
+            {
+                if (records.Count == 1)
+                {
+                    callback?.Invoke(0);
+                    return;
+                }
+
+                if (playerFriends.ContainsKey(player.userID))
+                    playerFriends[player.userID].Add(friendUid);
+                else
+                    playerFriends.Add(player.userID, new HashSet<ulong> { friendUid });
+
+                MInsert(MBuild("INSERT INTO friends (user_id, with_user_id) VALUES (@0, @1);", info.id, friendId), callback);
+            });
         }
 
-        void RemoveFriend(BasePlayer player, ulong friendUid)
+        void RemoveFriend(BasePlayer player, ulong friendUid, int friendId, Action<int> callback = null)
         {
-            if (playerFriends.ContainsKey(player.userID))
-                playerFriends[player.userID].Remove(friendUid);
+            PlayerInfo info = playerInfo[player.userID];
 
-            // When there are no users connected to this as friend, remove..
-            if (playerFriends[player.userID].Count == 0)
-                playerFriends.Remove(player.userID);
+            MQuery(MBuild("SELECT * FROM friends WHERE user_id=@0 AND with_user_id=@1 LIMIT 1;", info.id, friendId), records =>
+            {
+                if (records.Count == 0)
+                {
+                    callback?.Invoke(0);
+                    return;
+                }
+
+                if (playerFriends.ContainsKey(player.userID))
+                    playerFriends[player.userID].Remove(friendUid);
+
+                // When there are no users connected to this as friend, remove..
+                if (playerFriends[player.userID].Count == 0)
+                    playerFriends.Remove(player.userID);
+
+                // Remove old friend from the turret whitelist
+                var turrets = UnityEngine.Object.FindObjectsOfType<AutoTurret>();
+                foreach (AutoTurret turret in turrets)
+                {
+                    if (turret.OwnerID != player.userID)
+                        continue;
+
+                    turret.authorizedPlayers.RemoveAll(a => a.userid == friendUid);
+                }
+
+                // Remove old friend from the codelock shares
+                var codeLocks = UnityEngine.Object.FindObjectsOfType<CodeLock>();
+                foreach (CodeLock codeLock in codeLocks)
+                {
+                    var entity = codeLock.GetParentEntity();
+                    if (entity == null || entity.OwnerID != player.userID)
+                        continue;
+
+                    var whitelistPlayers = (List<ulong>)codeLock.whitelistPlayers;
+                    whitelistPlayers.RemoveAll(a => a == friendUid);
+                }
+
+                MDelete(MBuild("DELETE FROM friends WHERE user_id=@0 AND with_user_id=@1 LIMIT 1;", info.id, friendId), callback);
+            });
+        }
+
+        void GetFriends(BasePlayer player, Action<List<FriendItem>> callback, bool includeNonFriends = false)
+        {
+            if (player == null || !playerInfo.ContainsKey(player.userID))
+                return;
+
+            PlayerInfo info = playerInfo[player.userID];
+
+            MQuery(MBuild("SELECT users.display_name AS display_name, users.steam_id AS uid FROM friends LEFT JOIN users ON friends.with_user_id = users.id WHERE friends.user_id = @0;", info.id), records =>
+            {
+                List<FriendItem> friends = new List<FriendItem>();
+
+                foreach (var record in records)
+                {
+                    ulong uid = Convert.ToUInt64(record["uid"]);
+
+                    friends.Add(new FriendItem()
+                    {
+                        userId = uid,
+                        displayName = Convert.ToString(record["display_name"]),
+                        isFriend = true,
+                        isOnline = playerInfo.ContainsKey(uid),
+                    });
+                }
+
+                if (includeNonFriends)
+                    foreach (BasePlayer p in BasePlayer.activePlayerList)
+                        if (player != null)
+                            friends.Add(new FriendItem()
+                            {
+                                userId = p.userID,
+                                displayName = p.displayName,
+                                isFriend = false,
+                                isOnline = false,
+                            });
+
+                callback(friends);
+            });
         }
         #endregion
+
+        #region GUI
+        void CreateGUI(BasePlayer player, List<FriendItem> players, int index = 0)
+        {
+            DestroyGUI(player);
+
+            // Main container
+            var container = UI.CreateElementContainer("gl_friends", "0 0 0 0.99", "0.35 0.05", "0.65 0.95", true);
+
+            // Close button
+            UI.CreateButton(ref container, "gl_friends", "0.8 0.2 0.2 1", "Close", 12, "0.1 0", "0.9 0.04", "friend close");
+
+            // Index buttons
+            if (index > 0)
+                UI.CreateButton(ref container, "gl_friends", "0.12 0.38 0.57 1", "Prev", 12, "0 0", "0.09 0.04", $"friend open {index - 1}");
+
+            if (players.Count - (index * 15) > 15)
+                UI.CreateButton(ref container, "gl_friends", "0.12 0.38 0.57 1", "Next", 12, "0.91 0", "0.997 0.04", $"friend open {index + 1}");
+
+            int i = 0;
+            foreach (FriendItem item in players.Skip(index * 15).Take(15))
+                CreateRecordGUI(ref container, item, i++);
+
+            CuiHelper.AddUi(player, container);
+        }
+
+
+        void DestroyGUI(BasePlayer player)
+        {
+            UI.Destroy(player, "gl_friends");
+        }
+
+        void CreateRecordGUI(ref CuiElementContainer container, FriendItem friend, int index)
+        {
+            Vector2 dim = new Vector2(1f, 0.05f);
+            Vector2 ori = new Vector2(0.0f, 1f);
+            float offset = (0.013f + dim.y) * (index + 1);
+            Vector2 off = new Vector2(0f, offset);
+            Vector2 min = ori - off;
+            Vector2 max = min + dim;
+
+            UI.CreatePanel(ref container, "gl_friends", "1 1 1 0.02", $"{min.x} {min.y}", $"{max.x} {max.y}");
+            UI.CreateLabel(ref container, "gl_friends", $"{friend.displayName}{(friend.isFriend && friend.isOnline ? "  <color=#0D0>(Online)</color>" : "")}", 12, $"{min.x + 0.02} {min.y}", $"{max.x} {max.y}", TextAnchor.MiddleLeft, "1 1 1 1", 0);
+
+            if (friend.isFriend)
+                UI.CreateButton(ref container, "gl_friends", "0.57 0.21 0.11 1", $"Remove", 12, $"{min.x + 0.8} {min.y + 0.01}", $"{max.x - 0.02} {max.y - 0.01}", $"friend remove {friend.userId}");
+            else
+                UI.CreateButton(ref container, "gl_friends", "0.41 0.5 0.25 1", $"Add", 12, $"{min.x + 0.8} {min.y + 0.01}", $"{max.x - 0.02} {max.y - 0.01}", $"friend add {friend.userId}");
+        }
+        #endregion
+
+        public class FriendItem
+        {
+            public ulong userId;
+            public string displayName;
+            public bool isFriend = false;
+            public bool isOnline = false;
+        }
     }
 }
