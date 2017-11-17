@@ -30,6 +30,13 @@ module.exports = {
     channel: 'glr',
   },
 
+  // PayPal
+  paypal: {
+    live: true,
+    client_id: 'AfkgmlzxNB1S_2-tFTatel_GDPJUS89ySL4KoXHy1D58O6dmtctt5vjd3RblGSHvBpJJ9GIB5xdOjseP',
+    client_secret: 'EPkiYwrQLn6gbCq22th4qiPB2VuiqyVAMIUHZMId2Wtz8BknsXXIFAB69twuYCNFcifxJTsDV22cPNsy',
+  },
+
   // Database configuration
   database: {
     client: 'mysql',

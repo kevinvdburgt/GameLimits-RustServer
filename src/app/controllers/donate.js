@@ -95,6 +95,7 @@ const validate = async (req, res, next) => {
       .table('payments')
       .where('id', paymentData.id)
       .update({
+        paypal_approval: payerId,
         state: payment.state,
       });
     
