@@ -4,6 +4,9 @@ exports.up = (knex, Promise) => knex.schema.createTableIfNotExists('users', (tab
   table.string('steam_id');
   table.string('avatar');
   table.boolean('is_admin').defaultTo(false);
+  table.integer('playtime').defaultsTo(0);
+  table.integer('afktime').defaultsTo(0);
+  table.integer('rewardtime').defaultTo(0);
   table.timestamps(true, true);
 });
 

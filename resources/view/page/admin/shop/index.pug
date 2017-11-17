@@ -8,8 +8,7 @@ block content
 
   section.section
     div.container
-      div.content
-        table.table
+        table.table.is-striped.is-narrow.is-fullwidth
           thead
             tr
               th Name
@@ -19,8 +18,8 @@ block content
               th Price
               th Amount
               th Type
-              th Created at
-              th Updated at
+              //- th Created at
+              //- th Updated at
               th.has-text-right Actions
           tbody
             each item in items
@@ -35,10 +34,8 @@ block content
                 td #{item.price}
                 td #{item.amount}
                 td #{item.type == '1' ? 'Grid' : 'List'}
-                td #{moment(item.created_at).format('DD-MM-YYYY HH:mm')}
-                td #{moment(item.updated_at).format('DD-MM-YYYY HH:mm')}
-                td.has-text-right
-                  a.button.is-primary.is-small.is-outlined(href=`/admin/shop/${item.id}`) View
-                  a.button.is-primary.is-small.is-outlined(href=`/admin/shop/${item.id}`) Edit
-                  a.button.is-primary.is-small.is-outlined(href=`/admin/shop/${item.id}`) Delete
-                  
+                //- td #{moment(item.created_at).format('DD-MM-YYYY HH:mm')}
+                //- td #{moment(item.updated_at).format('DD-MM-YYYY HH:mm')}
+                td
+                  div.buttons.has-addons.is-right
+                      a.button.is-primary.is-small.is-outlined(href=`/admin/shop/${item.id}`) View
