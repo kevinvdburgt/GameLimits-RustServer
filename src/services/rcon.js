@@ -1,27 +1,18 @@
 import WebRcon from 'webrconjs';
 import config from '../../config';
 
-const rcon = new WebRcon(config.rcon.host, config.rcon.port);
+export const rcon = new WebRcon(config.rcon.host, config.rcon.port);
 rcon.connect(config.rcon.pass);
 
-export default rcon;
+export const exec = (message) => {
+  if (rcon.status !== 'CONNECTED') {
+    console.warn('Failed to execute rcon message, retying in 500ms..');
+    setTimeout(() => exec(message), 500);
+    try { rcon.connect(config.rcon.pass); } catch (e) {}
+    return;
+  }
 
-// rcon.on('message', (msg) => {
-//   console.log('msg>>>', msg);
-// });
+  rcon.run(message);
+};
 
-// rcon.on('connect', () => {
-//   console.log('connect>>>', );
-// });
-
-// rcon.on('disconnect', () => {
-//   console.log('disconnect>>>', );
-// });
-
-// rcon.on('error', (err) => {
-//   console.log('err>>>', err);
-// });
-
-// rcon.connect('changeme');
-
-// console.log('x');
+export default { rcon, exec };

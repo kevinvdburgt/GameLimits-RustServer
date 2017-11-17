@@ -25,6 +25,7 @@
     "bookshelf": "^0.10.4",
     "bookshelf-upsert": "^0.1.4",
     "bulma": "^0.6.1",
+    "decode-html": "^2.0.0",
     "discord.js": "^11.2.1",
     "express": "^4.16.2",
     "express-session": "^1.15.6",
