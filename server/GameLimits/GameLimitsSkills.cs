@@ -15,37 +15,41 @@ namespace Oxide.Plugins
         private Dictionary<ulong, PlayerSkill> playerSkills = new Dictionary<ulong, PlayerSkill>();
 
         #region Server Events
-        void OnEntityDeath(BaseCombatEntity entity, HitInfo hitInfo)
+        private void OnEntityDeath(BaseCombatEntity entity, HitInfo hitInfo)
         {
             if (entity == null || !(entity is BasePlayer))
                 return;
 
-            var player = (BasePlayer)entity;
-            long penalty = 200;
+            // Cast the entity to a BasePlayer
+            BasePlayer player = (BasePlayer)entity;
 
+            // The XP Penalty that will be applied to all skills
+            long xpPenalty = 200;
+
+            // Loop through all skills
             foreach (Skill skill in Skills.all)
             {
                 long xp = playerSkills[player.userID].GetXp(skill.code);
 
-                if (xp < penalty)
+                if (xp < xpPenalty)
                     return;
 
-                playerSkills[player.userID].SetXp(skill.code, xp - penalty);
-                playerSkills[player.userID].SetLevel(skill.code, GetXpLevel(xp - penalty));
+                // Decrease the xp and level
+                playerSkills[player.userID].SetXp(skill.code, xp - xpPenalty);
+                playerSkills[player.userID].SetLevel(skill.code, GetXpLevel(xp - xpPenalty));
 
-                PrintToChat(player, $"<color=\"#DD32AA\">{skill.name}</color> -{penalty} XP Penalty for dying.");
-
+                // Update the GUI
                 UpdateGUI(player, skill);
             }
-                
         }
 
-        void OnDispenserGather(ResourceDispenser dispenser, BaseEntity entity, Item item)
+        private void OnDispenserGather(ResourceDispenser dispenser, BaseEntity entity, Item item)
         {
             if (entity == null || !(entity is BaseEntity) || item == null || dispenser == null)
                 return;
 
-            var player = (BasePlayer)entity;
+            // Cast the entity to a BasePlayer
+            BasePlayer player = (BasePlayer)entity;
 
             if (dispenser.gatherType == ResourceDispenser.GatherType.Tree)
                 LevelHandler(player, item, Skills.woodcutting);
@@ -57,7 +61,7 @@ namespace Oxide.Plugins
                 LevelHandler(player, item, Skills.skinning);
         }
 
-        void OnCollectiblePickup(Item item, BasePlayer player, CollectibleEntity entity)
+        private void OnCollectiblePickup(Item item, BasePlayer player, CollectibleEntity entity)
         {
             if (item == null || player == null)
                 return;
@@ -65,7 +69,7 @@ namespace Oxide.Plugins
             LevelHandler(player, item, Skills.acquiring);
         }
 
-        void OnCropGather(PlantEntity plant, Item item, BasePlayer player)
+        private void OnCropGather(PlantEntity plant, Item item, BasePlayer player)
         {
             if (item == null || player == null)
                 return;
@@ -73,16 +77,13 @@ namespace Oxide.Plugins
             LevelHandler(player, item, Skills.acquiring);
         }
 
-        void Init()
+        private void Init()
         {
-            foreach (var player in BasePlayer.activePlayerList)
-            {
-                LoadPlayer(player);
-                CreateGUI(player);
-            }
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+                OnPlayerInit(player);
         }
 
-        void OnPlayerInit(BasePlayer player)
+        private void OnPlayerInit(BasePlayer player)
         {
             if (player == null)
                 return;
@@ -91,7 +92,7 @@ namespace Oxide.Plugins
             LoadPlayer(player);
         }
 
-        void OnPlayerSleepEnded(BasePlayer player)
+        private void OnPlayerSleepEnded(BasePlayer player)
         {
             if (player == null)
                 return;
@@ -99,7 +100,7 @@ namespace Oxide.Plugins
             CreateGUI(player);
         }
 
-        void OnPlayerSleep(BasePlayer player)
+        private void OnPlayerSleep(BasePlayer player)
         {
             if (player == null)
                 return;
@@ -107,7 +108,7 @@ namespace Oxide.Plugins
             DestroyGUI(player);
         }
 
-        void OnEntityTakeDamage(BaseCombatEntity entity, HitInfo info)
+        private void OnEntityTakeDamage(BaseCombatEntity entity, HitInfo info)
         {
             if (entity == null || !(entity is BasePlayer))
                 return;
@@ -118,7 +119,7 @@ namespace Oxide.Plugins
             });
         }
 
-        void OnPlayerDisconnected(BasePlayer player, string reason)
+        private void OnPlayerDisconnected(BasePlayer player, string reason)
         {
             if (player == null || playerSkills.ContainsKey(player.userID))
                 return;
@@ -207,7 +208,7 @@ namespace Oxide.Plugins
         #endregion
 
         #region Functions
-        void LoadPlayer(BasePlayer player)
+        private void LoadPlayer(BasePlayer player)
         {
             if (player == null || playerSkills.ContainsKey(player.userID))
                 return;
@@ -239,7 +240,7 @@ namespace Oxide.Plugins
             });
         }
 
-        void SavePlayer(BasePlayer player)
+        private void SavePlayer(BasePlayer player)
         {
             if (player == null || !playerSkills.ContainsKey(player.userID))
                 return;
@@ -248,7 +249,7 @@ namespace Oxide.Plugins
                 SavePlayerSkill(player, skill);
         }
 
-        void SavePlayerSkill(BasePlayer player, Skill skill)
+        private void SavePlayerSkill(BasePlayer player, Skill skill)
         {
             if (player == null || !playerSkills.ContainsKey(player.userID))
                 return;
@@ -306,7 +307,7 @@ namespace Oxide.Plugins
 
         private void LevelHandler(BasePlayer player, Item item, Skill skill)
         {
-            if (!playerSkills.ContainsKey(player.userID))
+            if (player == null || !playerSkills.ContainsKey(player.userID))
                 return;
 
             PlayerSkill pskill = playerSkills[player.userID];
@@ -323,7 +324,7 @@ namespace Oxide.Plugins
             {
                 level = GetXpLevel(xp);
 
-                PrintToChat(player, $"<color=\"#DD32AA\">{skill.name}</color> level up!\nLevel {level} ({xp}/{GetLevelXp(level + 1)} XP).\n<color=\"#DD32AA\">{ (((1 + 1 * 0.1 * (level - 1)) * 100).ToString("0.##"))}%</color> bonus");
+                PrintToChat(player, $"<color=\"#DD32AA\">{skill.name}</color> level up! { (((1 + 1 * 0.1 * (level - 1)) * 100).ToString("0.##"))}% bonus");
             }
 
             pskill.SetLevel(skill.code, level);
@@ -338,8 +339,11 @@ namespace Oxide.Plugins
         #endregion
 
         #region GUI
-        void CreateGUI(BasePlayer player)
+        private void CreateGUI(BasePlayer player)
         {
+            if (player == null)
+                return;
+
             DestroyGUI(player);
 
             // Main container
@@ -351,19 +355,32 @@ namespace Oxide.Plugins
 
             CuiHelper.AddUi(player, container);
 
+            // Render each skill on the screen
             if (playerSkills.ContainsKey(player.userID))
                 foreach (Skill skill in Skills.all)
                     UpdateGUI(player, skill);
         }
 
-        void DestroyGUI(BasePlayer player)
+        /// <summary>
+        /// Destroy the GUI
+        /// </summary>
+        /// <param name="player"></param>
+        private void DestroyGUI(BasePlayer player)
         {
+            if (player == null)
+                return;
+
             UI.Destroy(player, "gl_skills");
         }
 
-        void UpdateGUI(BasePlayer player, Skill skill)
+        /// <summary>
+        /// Updates a skill GUI
+        /// </summary>
+        /// <param name="player"></param>
+        /// <param name="skill"></param>
+        private void UpdateGUI(BasePlayer player, Skill skill)
         {
-            if (!playerSkills.ContainsKey(player.userID))
+            if (player == null || !playerSkills.ContainsKey(player.userID))
                 return;
 
             var percent = GetExperiencePercent(player, skill);

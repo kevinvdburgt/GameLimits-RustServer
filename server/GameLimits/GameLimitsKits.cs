@@ -11,6 +11,10 @@ namespace Oxide.Plugins
 
     public class GameLimitsKits : RustPlugin
     {
-        
+        private class Kit
+        {
+            public string command;
+            public int cooldown;
+        }
     }
 }

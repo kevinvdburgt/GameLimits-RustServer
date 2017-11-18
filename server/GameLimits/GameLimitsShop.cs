@@ -14,46 +14,7 @@ namespace Oxide.Plugins
     public class GameLimitsShop : RustPlugin
     {
         private Dictionary<string, ShopItem> ShopItems = new Dictionary<string, ShopItem>();
-
-        public void InitializeShop()
-        {
-            if (!MReady())
-            {
-                Log("Shop", "Waiting for the MySQL server...", GameLimits.LogType.INFO);
-                timer.Once(2f, () => InitializeShop());
-                return;
-            }
-
-            ShopItems.Clear();
-
-            MQuery(MBuild("SELECT * FROM shop_items ORDER BY sort ASC;"), records =>
-            {
-                if (records.Count == 0)
-                {
-                    Log("Shop", "No shop items to load..", GameLimits.LogType.INFO);
-                    return;
-                }
-
-                Log("Shop", $"Loading {records.Count} shop items", GameLimits.LogType.INFO);
-
-                foreach (var record in records)
-                {
-                    ShopItems.Add(Convert.ToString(record["key"]), new ShopItem()
-                    {
-                        name = Convert.ToString(record["name"]),
-                        description = Convert.ToString(record["description"]),
-                        image = Convert.ToString(record["image"]),
-                        command = Convert.ToString(record["command"]),
-                        category = Convert.ToString(record["category"]),
-                        price = Convert.ToInt32(record["price"]),
-                        type = Convert.ToInt16(record["type"]),
-                        amount = Convert.ToInt32(record["amount"]),
-                        id = Convert.ToInt32(record["id"]),
-                    });
-                }
-            });
-        }
-
+        
         #region Server Events
         [ChatCommand("s")]
         private void OnChatCommandS(BasePlayer player, string command, string[] args)
@@ -247,6 +208,45 @@ namespace Oxide.Plugins
         #endregion
 
         #region Functions
+        public void InitializeShop()
+        {
+            if (!MReady())
+            {
+                Puts("Waiting for the MySQL server..");
+                timer.Once(2f, () => InitializeShop());
+                return;
+            }
+
+            ShopItems.Clear();
+
+            MQuery(MBuild("SELECT * FROM shop_items ORDER BY sort ASC;"), records =>
+            {
+                if (records.Count == 0)
+                {
+                    Puts("No shop items to load..");
+                    return;
+                }
+
+                foreach (var record in records)
+                {
+                    ShopItems.Add(Convert.ToString(record["key"]), new ShopItem()
+                    {
+                        name = Convert.ToString(record["name"]),
+                        description = Convert.ToString(record["description"]),
+                        image = Convert.ToString(record["image"]),
+                        command = Convert.ToString(record["command"]),
+                        category = Convert.ToString(record["category"]),
+                        price = Convert.ToInt32(record["price"]),
+                        type = Convert.ToInt16(record["type"]),
+                        amount = Convert.ToInt32(record["amount"]),
+                        id = Convert.ToInt32(record["id"]),
+                    });
+                }
+
+                Puts($"Loaded {records.Count} shop items");
+            });
+        }
+
         public void BuyItem(BasePlayer player, string productId)
         {
             // Check if the item exists
@@ -261,7 +261,7 @@ namespace Oxide.Plugins
             {
                 if (records.Count == 0)
                 {
-                    Puts("Failed to fetch");
+                    Puts("Failed to fetch when buying item");
                     return;
                 }
 
@@ -271,7 +271,7 @@ namespace Oxide.Plugins
 
                 if (product.price > points)
                 {
-                    UpdateInfoGUI(player, $"<color=#B70E30>Not enough Reward Points</color> visit https://rust.gamelimits.com/ to buy RP.");
+                    UpdateInfoGUI(player, $"<color=#B70E30>Not enough Reward Points</color> visit https://rust.gamelimits.com/ to buy Reward Points.");
                     return;
                 }
 
@@ -325,7 +325,7 @@ namespace Oxide.Plugins
                     break;
 
                 default:
-                    Log("Shop", $"Cannot execute command {command}", GameLimits.LogType.ERROR);
+                    Puts($"Cannot execute command {command}");
                     break;
             }
         }
