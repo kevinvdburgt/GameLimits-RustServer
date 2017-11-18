@@ -66,7 +66,7 @@ namespace Oxide.Plugins
 
         void OnRconCommand(IPAddress ip, string command, string[] args)
         {
-            if (command != "gl_shop_reload")
+            if (command != "shop.reload")
                 return;
 
             InitializeShop();
@@ -279,57 +279,13 @@ namespace Oxide.Plugins
                 {
                     string[] commands = product.command.Split('|');
                     foreach (string command in commands)
-                        ExecuteCommand(player, command, product);
+                        GameLimits.ExecuteCommand(player, command);
 
                     info.LoadRewardPoints(() => UpdateInfoGUI(player, $"<color=#0E84B7>Bought</color> {product.name}"));
                 });
 
                 MInsert(MBuild("INSERT INTO shop_history (user_id, shop_item_id) VALUES (@0, @1);", info.id, product.id));
             });
-        }
-
-        public void ExecuteCommand(BasePlayer player, string command, ShopItem item)
-        {
-            string[] args = command.Split(' ');
-
-            if (args.Length == 0 || player == null || !playerInfo.ContainsKey(player.userID))
-                return;
-
-            PlayerInfo info = playerInfo[player.userID];
-
-            Puts($"Shop execution for {player.displayName}: {command}");
-
-            switch (args[0])
-            {
-                case "subscription":
-                    if (args.Length == 3)
-                        info.AddSubscription(args[1], Convert.ToInt32(args[2]));
-                    break;
-
-                case "give":
-                    if (args.Length != 3)
-                        return;
-
-                    if (player.inventory.containerMain.itemList.Count == 24)
-                    {
-                        timer.Once(5f, () => ExecuteCommand(player, command, item));
-                        return;
-                    }
-
-                    ItemDefinition definition = ItemManager.FindItemDefinition(args[1]);
-                    if (definition == null)
-                        return;
-
-                    int amount = Convert.ToInt32(args[2]);
-
-                    player.inventory.GiveItem(ItemManager.CreateByItemID(definition.itemid, amount), player.inventory.containerMain);
-
-                    break;
-
-                default:
-                    Puts($"Cannot execute command {command}");
-                    break;
-            }
         }
         #endregion
 
