@@ -56,7 +56,7 @@ rcon.on('message', (message) => {
     if (slack.channel && slack.ready) {
       rtm.sendMessage('>' + msg, slack.channel.id);
     }
-  } else {
+  } else if(message.message.substring(0, 1) === '[') {
     if (slack.channel && slack.ready) {
       rtm.sendMessage(`\`\`\`${message.message}\`\`\``, slack.channel.id);
     }
