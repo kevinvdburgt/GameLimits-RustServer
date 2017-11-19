@@ -28,7 +28,7 @@ namespace Oxide.Plugins
             // Check if the player has special permissions on the server
             string tags = "";
 
-            if (info.HasSubscription("vip"))
+            if (info.HasSubscription("vip") || info.HasSubscription("vip_pro") || info.HasSubscription("vip_elite"))
                 tags += "<color=#88B71B>[VIP]</color> ";
 
             // Send the chat to the game
@@ -51,8 +51,8 @@ namespace Oxide.Plugins
 
         void OnRconCommand(IPAddress ip, string command, string[] args)
         {
-            // Using the command "gl_chat_admin" to intergratie with the Slack chat client.
-            if (command != "gl_chat_admin" || args == null)
+            // Using the command "chat.admin" to intergratie with the Slack chat client.
+            if (command != "chat.admin" || args == null)
                 return;
 
             SendAdminMessage(string.Join(" ", args));

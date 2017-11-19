@@ -481,7 +481,7 @@ namespace Oxide.Plugins
 
             MQuery(MBuild("SELECT a.steam_id AS uid, b.steam_id AS with_uid FROM friends LEFT JOIN users AS a ON friends.user_id = a.id LEFT JOIN users AS b ON friends.with_user_id = b.id;"), records =>
             {
-                Puts("Friends", $"Found {records.Count} friend records!");
+                Puts($"Found {records.Count} friend records!");
 
                 playerFriends.Clear();
 
@@ -553,8 +553,6 @@ namespace Oxide.Plugins
         public static bool ExecuteCommand(BasePlayer player, string command)
         {
             string[] args = command.Split(' ');
-
-            Console.WriteLine(command);
 
             if (player == null || args.Length == 0 || !playerInfo.ContainsKey(player.userID))
                 return false;
