@@ -42,7 +42,7 @@ rtm.on(RTM_EVENTS.MESSAGE, (message) => {
       exec(`${line.substring(2)}`);
       console.log(`[RCON:OUT]: ${line.substring(2)}`);
     } else if (line.substring(0, 1) === '>') {
-      exec(`gl_chat_admin ${line.substring(1)}`);
+      exec(`chat.admin ${line.substring(1)}`);
       console.log(`[Chat]: ${line.substring(1)}`);
     }
   });
@@ -54,7 +54,11 @@ rcon.on('message', (message) => {
     const msg = message.message.substring(7);
 
     if (slack.channel && slack.ready) {
-      rtm.sendMessage('>' + msg, slack.channel.id);
+      if (msg.toLowerCase().includes('admin') || msg.toLowerCase().includes('report') || msg.toLowerCase().includes('bug')) {
+        rtm.sendMessage('<@kevin>\n>' + msg, slack.channel.id);
+      } else {
+        rtm.sendMessage('>' + msg, slack.channel.id);        
+      }
     }
   } else if(message.message.substring(0, 1) === '[') {
     if (slack.channel && slack.ready) {
