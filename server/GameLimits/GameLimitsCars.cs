@@ -44,7 +44,7 @@ namespace Oxide.Plugins
                     spawns.Add(monument.transform.position + new Vector3(20f, 50f, 20f));
 
             // Set the respawn check timer
-            timer.Every(60f * 60f, () => Respawn());
+            timer.Every(60f * 60f * 6f, () => Respawn());
             Respawn();
         }
 

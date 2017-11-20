@@ -32,12 +32,18 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="GameLimits.cs" />
+    <Compile Include="GameLimitsAdmin.cs" />
     <Compile Include="GameLimitsCars.cs" />
     <Compile Include="GameLimitsChat.cs" />
     <Compile Include="GameLimitsFriends.cs" />
     <Compile Include="GameLimitsInfo.cs" />
+    <Compile Include="GameLimitsKits.cs" />
+    <Compile Include="GameLimitsPlaytime.cs" />
+    <Compile Include="GameLimitsRemove.cs" />
     <Compile Include="GameLimitsShop.cs" />
     <Compile Include="GameLimitsSkills.cs" />
+    <Compile Include="GameLimitsSpawn.cs" />
+    <Compile Include="GameLimitsStacks.cs" />
     <Compile Include="GameLimitsTeleport.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

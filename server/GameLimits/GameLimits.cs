@@ -7,6 +7,10 @@
 // Requires: GameLimitsStacks
 // Requires: GameLimitsPlaytime
 // Requires: GameLimitsSpawn
+// Requires: GameLimitsRemove
+// Requires: GameLimitsKits
+// Requires: GameLimitsAdmin
+// Requires: GameLimitsKillfeed
 
 using Oxide.Core.Database;
 using Oxide.Core;
@@ -88,11 +92,13 @@ namespace Oxide.Plugins
             /// <param name="amout"></param>
             /// <param name="message"></param>
             /// <param name="callback"></param>
-            public void GiveRewardPoints(int amout, string message = null, Action callback = null)
+            public void GiveRewardPoints(int amount, string message = null, Action callback = null)
             {
-                MInsert(MBuild("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", id, amout, message), done =>
-                {
-                    LoadRewardPoints(() => callback());
+                MInsert(MBuild("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", id, amount, message), done => {
+                    LoadRewardPoints(() =>
+                    {
+                        callback?.Invoke();
+                    });
                 });
             }
 
@@ -143,6 +149,41 @@ namespace Oxide.Plugins
                     subscriptions.Clear();
                     foreach (var record in records)
                         subscriptions.Add(Convert.ToString(record["name"]), Convert.ToInt32(record["expires_at"]));
+                });
+            }
+
+
+            public Dictionary<string, int> cooldowns = new Dictionary<string, int>();
+
+            public int HasCooldown(string name)
+            {
+                int timestamp = Timestamp();
+
+                if (cooldowns.ContainsKey(name) && cooldowns[name] > timestamp)
+                    return cooldowns[name] - timestamp;
+
+                return 0;
+            }
+
+            public void AddCooldown(string name, int seconds)
+            {
+                MQuery(MBuild("SELECT id, UNIX_TIMESTAMP(expires_at) AS expires_at FROM cooldowns WHERE user_id=@0 AND name=@1 AND expires_at > NOW();", id, name), records =>
+                {
+                    int timestamp = Timestamp() + seconds;
+                    if (records.Count == 0)
+                        MInsert(MBuild("INSERT INTO cooldowns (user_id, name, expires_at) VALUES (@0, @1, FROM_UNIXTIME(@2));", id, name, timestamp), (int i) => LoadCooldowns());
+                    else if (records.Count == 1)
+                        MNonQuery(MBuild("UPDATE cooldowns SET expires_at=FROM_UNIXTIME(@0) WHERE id=@1 LIMIT 1;", Convert.ToInt32(records[0]["expires_at"]) + seconds, Convert.ToInt32(records[0]["id"])), (int i) => LoadCooldowns());
+                });
+            }
+
+            public void LoadCooldowns()
+            {
+                MQuery(MBuild("SELECT name, UNIX_TIMESTAMP(expires_at) AS expires_at FROM cooldowns WHERE user_id=@0 AND expires_at > NOW();", id), records =>
+                {
+                    cooldowns.Clear();
+                    foreach (var record in records)
+                        cooldowns.Add(Convert.ToString(record["name"]), Convert.ToInt32(record["expires_at"]));
                 });
             }
         }
@@ -304,6 +345,26 @@ namespace Oxide.Plugins
 
             return true;
         }
+
+        public static int Timestamp()
+        {
+            return (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+        }
+
+        public static List<BasePlayer> FindOnlinePlayers(string search)
+        {
+            List<BasePlayer> players = new List<BasePlayer>();
+            if (string.IsNullOrEmpty(search))
+                return players;
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+                if (player.UserIDString.Equals(search))
+                    players.Add(player);
+                else if (!string.IsNullOrEmpty(player.displayName) && player.displayName.Contains(search, CompareOptions.IgnoreCase))
+                    players.Add(player);
+                else if (player.net?.connection != null && player.net.connection.ipaddress.Equals(search))
+                    players.Add(player);
+            return players;
+        }
         #endregion
 
         #region MySQL Helpers
@@ -375,7 +436,7 @@ namespace Oxide.Plugins
 
         void OnPlayerDisconnected(BasePlayer player, string reason)
         {
-            if (player == null || playerInfo.ContainsKey(player.userID))
+            if (player == null || !playerInfo.ContainsKey(player.userID))
                 return;
 
             playerInfo.Remove(player.userID);
@@ -477,6 +538,7 @@ namespace Oxide.Plugins
 
                 info.LoadSubscriptions();
                 info.LoadRewardPoints();
+                info.LoadCooldowns();
 
                 Puts($"Player loaded from the database [{player.displayName}] (id: {info.id})");
             });
@@ -487,6 +549,75 @@ namespace Oxide.Plugins
             if (player == null || !playerInfo.ContainsKey(player.userID))
                 return;
         }
+
+        public static bool ExecuteCommand(BasePlayer player, string command)
+        {
+            string[] args = command.Split(' ');
+
+            Console.WriteLine(command);
+
+            if (player == null || args.Length == 0 || !playerInfo.ContainsKey(player.userID))
+                return false;
+
+            PlayerInfo info = playerInfo[player.userID];
+
+            switch (args[0])
+            {
+                // Add subscriptions
+                // syntax: subscription <name> <duration in seconds>
+                case "subscription":
+                    if (args.Length != 3)
+                        return false;
+
+                    info.AddSubscription(Convert.ToString(args[1]), Convert.ToInt32(args[2]));
+                    break;
+
+                // Give item
+                // syntax: give <itemname> [amount] [inventory]
+                case "give":
+                    if (args.Length == 1)
+                        return false;
+
+                    // Parameters
+                    int amount = args.Length == 3 ? Convert.ToInt32(args[2]) : 1;
+                    ItemContainer inventory = player.inventory.containerMain;
+                    if (args.Length == 4 && Convert.ToString(args[3]) == "belt")
+                        inventory = player.inventory.containerBelt;
+                    else if (args.Length == 4 && Convert.ToString(args[3]) == "wear")
+                        inventory = player.inventory.containerWear;
+
+                    ItemDefinition definition = ItemManager.FindItemDefinition(Convert.ToString(args[1]));
+                    if (definition == null)
+                        return false;
+
+                    Item item = ItemManager.CreateByItemID(definition.itemid, amount);
+                    
+                    if (inventory.itemList.Count >= 24)
+                        item.Drop(player.transform.position, new Vector3(0, 1f, 0));
+                    else
+                        player.inventory.GiveItem(ItemManager.CreateByItemID(definition.itemid, amount), inventory);
+                    break;
+
+                // Call the helicopter to the caller
+                // syntax: helicopter
+                case "helicopter":
+                    BaseHelicopter helicopter = (BaseHelicopter)GameManager.server.CreateEntity("assets/prefabs/npc/patrol helicopter/patrolhelicopter.prefab", new Vector3(), new Quaternion(), true);
+                    if (helicopter == null)
+                        return false;
+
+                    var ai = helicopter?.GetComponent<PatrolHelicopterAI>() ?? null;
+                    if (ai == null)
+                        return false;
+
+                    ai.SetInitialDestination(player.transform.position + new Vector3(0, 1f, 0));
+
+                    helicopter.Spawn();
+                    break;
+            }
+
+            return true;
+        }
         #endregion
     }
 }
+

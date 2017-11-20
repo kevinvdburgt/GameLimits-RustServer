@@ -347,7 +347,7 @@ namespace Oxide.Plugins
             DestroyGUI(player);
 
             // Main container
-            var container = UI.CreateElementContainer("gl_skills", "0 0 0 0", "0.725 0.02", "0.83 0.1350", false, "Overlay");
+            var container = UI.CreateElementContainer("gl_skills", "0 0 0 0", "0.725 0.02", "0.83 0.1350", false, "Under");
 
             // If the player information has not been loaded, let the player know we are still loading his information
             if (!playerSkills.ContainsKey(player.userID))
