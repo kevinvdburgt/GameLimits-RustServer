@@ -77,7 +77,8 @@ namespace Oxide.Plugins
                     text = $"Hi <color=#f00>{player.displayName}</color>, welcome to the Game Limits Rust server!\n\n" +
                         "Wiped on: 16 november\nNext wipe: 7 december\n\n" +
                         "This server is still under heavy development!\n\n" +
-                        "Visit <color=#0E84B7>rust.gamelimits.com</color> for more information.";
+                        "Visit <color=#0E84B7>rust.gamelimits.com</color> for more information.\n\n" +
+                        "Bug Bounty: found an exploit or bug that significantly influences gameplay? Report to an admin and receive 500 RP!";
 
                     UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.UpperLeft, "1 1 1 1");
                     break;
