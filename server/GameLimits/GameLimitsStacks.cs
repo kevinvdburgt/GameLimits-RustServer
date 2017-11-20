@@ -55,7 +55,7 @@ namespace Oxide.Plugins
         private void OnServerInitialized()
         {
             List<ItemDefinition> items = ItemManager.itemList;
-            string result = "";
+            string result = "Stack changes:";
 
             foreach (ItemDefinition item in items)
             {
@@ -65,10 +65,10 @@ namespace Oxide.Plugins
 
                 // Set the stacked item
                 if (stacks.ContainsKey(item.shortname))
+                {
                     item.stackable = stacks[item.shortname];
-
-                // Append to the stack log
-                result += $"[{item.shortname}:{item.stackable}] ";
+                    result += $"\n[{item.shortname}:{item.stackable}] ";
+                }
             }
 
             Puts(result);

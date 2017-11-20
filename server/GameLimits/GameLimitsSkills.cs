@@ -23,6 +23,9 @@ namespace Oxide.Plugins
             // Cast the entity to a BasePlayer
             BasePlayer player = (BasePlayer)entity;
 
+            if (player == null || !playerSkills.ContainsKey(player.userID) || player.IsSleeping())
+                return;
+
             // The XP Penalty that will be applied to all skills
             long xpPenalty = 200;
 

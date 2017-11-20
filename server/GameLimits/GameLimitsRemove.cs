@@ -175,9 +175,7 @@ namespace Oxide.Plugins
                 player.ChatMessage($"<color=#d00>ERROR</color> You are not the owner of this entity.");
                 return;
             }
-
-            // @TODO: Cechk the cupboard as well?
-
+            
             if (entity is StorageContainer && (entity as StorageContainer).inventory.itemList.Count > 0)
                 DropUtil.DropItems((entity as StorageContainer).inventory, entity.transform.position, 1f);
 

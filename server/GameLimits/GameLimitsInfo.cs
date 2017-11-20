@@ -83,11 +83,12 @@ namespace Oxide.Plugins
                     break;
 
                 case "rules":
-                    text = "We dont have a lot of rules, however the following is strictly forbidden and will results in a instant ban by our automated systems:\n\n" +
-                        " - Spamming the chat.\n" +
-                        " - Advertising of any goods or services, other resources, media or events not releated to the game.\n" +
-                        " - Hacking, cheating or scripting.\n" +
-                        " - Using glitched to get an unfair advantage.";
+                    text = "We don't have many rules, but we do ask you to not:\n\n" +
+                        " - Spam the chat;\n" +
+                        " - Advertise any goods, services, other resources, media or events not releated to the game;\n" +
+                        " - Hack, cheat or script;\n" +
+                        " - Use glitches to get an unfair advantage.\n\n" +
+                        "We might ban you if we think it's necessary. Ban appeals can be requested in our Discord server.";
 
                     UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.UpperLeft, "1 1 1 1");
                     break;
@@ -98,7 +99,10 @@ namespace Oxide.Plugins
                         "<color=#aaa>/s /shop</color> Opens the ingame shop\n" +
                         "<color=#aaa>/f /friend</color> Opens the friend menu\n" +
                         "<color=#aaa>/r /remove</color> Remove placed entities\n" +
-                        "<color=#aaa>/k /kit</color> Use kits\n";
+                        "<color=#aaa>/k /kit</color> Use kits\n" +
+                        "<color=#aaa>/h /home</color> Manage home locations and teleportation\n" +
+                        // "<color=#aaa>/t /tpr \"name\"</color> Requests a teleport to another player\n" +
+                        "";
 
                     UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.UpperLeft, "1 1 1 1");
                     break;
@@ -122,7 +126,7 @@ namespace Oxide.Plugins
 
             // Pages
             UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "General", 12, $"0 {(page == "general" ? "0.95" : "0.96")}", "0.1 0.999", "info open general");
-            //UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Rules", 12, $"0.11 {(page == "rules" ? "0.95" : "0.96")}", "0.21 0.999", "info open rules");
+            UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Rules", 12, $"0.11 {(page == "rules" ? "0.95" : "0.96")}", "0.21 0.999", "info open rules");
             UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Commands", 12, $"0.22 {(page == "commands" ? "0.95" : "0.96")}", "0.32 0.999", "info open commands");
             //UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Website", 12, $"0.33 {(page == "website" ? "0.95" : "0.96")}", "0.43 0.999", "info open website");
             //UI.CreateButton(ref container, "gl_info", "0.12 0.38 0.57 1", "Reward Points", 12, $"0.44 {(page == "rp" ? "0.95" : "0.96")}", "0.54 0.999", "info open rp");

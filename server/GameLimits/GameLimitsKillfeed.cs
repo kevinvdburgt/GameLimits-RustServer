@@ -55,8 +55,8 @@ namespace Oxide.Plugins
                 killed = "black flame",
             });
 
-            foreach (BasePlayer p in BasePlayer.activePlayerList)
-                CreateGUI(p);
+            //foreach (BasePlayer p in BasePlayer.activePlayerList)
+                //CreateGUI(p);
         }
         #endregion
 
