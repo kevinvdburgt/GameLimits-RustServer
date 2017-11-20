@@ -13,7 +13,6 @@ namespace Oxide.Plugins
     public class GameLimitsTeleport : RustPlugin
     {
         private readonly int triggerLayer = LayerMask.GetMask("Trigger");
-        // private Dictionary<ulong, TeleportRequest> teleportRequests = new Dictionary<ulong, TeleportRequest>();
         private Dictionary<ulong, Dictionary<string, Vector3>> homes = new Dictionary<ulong, Dictionary<string, Vector3>>();
 
         #region Functions
@@ -260,8 +259,6 @@ namespace Oxide.Plugins
                 homes.Add(player.userID, playerHomes);
 
                 Puts($"Loaded {records.Count} homes for [{info.id}:{player.UserIDString}]");
-
-                // CreateHomeGUI(player);
             });
         }
         #endregion
