@@ -155,6 +155,9 @@ namespace Oxide.Plugins
             string[] commands = item.command.Split('|');
             foreach (string command in commands)
                 GameLimits.ExecuteCommand(player, command);
+
+            // Add logging
+            MInsert(MBuild("INSERT INTO kits_history (user_id, kit_id) VALUES (@0, @1);", info.id, item.id));
         }
 
         private void InitializeKits()

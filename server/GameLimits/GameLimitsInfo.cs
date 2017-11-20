@@ -98,7 +98,10 @@ namespace Oxide.Plugins
                         "<color=#aaa>/s /shop</color> Opens the ingame shop\n" +
                         "<color=#aaa>/f /friend</color> Opens the friend menu\n" +
                         "<color=#aaa>/r /remove</color> Remove placed entities\n" +
-                        "<color=#aaa>/k /kit</color> Use kits\n";
+                        "<color=#aaa>/k /kit</color> Use kits\n" +
+                        "<color=#aaa>/h /home</color> Manage home locations and teleportation\n" +
+                        "<color=#aaa>/t /tpr \"name\"</color> Requests a teleport to another player\n" +
+                        "";
 
                     UI.CreateLabel(ref container, "gl_info", text, 14, "0.01 0.01", "0.99 0.92", TextAnchor.UpperLeft, "1 1 1 1");
                     break;

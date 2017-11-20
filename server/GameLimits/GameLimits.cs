@@ -11,6 +11,7 @@
 // Requires: GameLimitsKits
 // Requires: GameLimitsAdmin
 // Requires: GameLimitsKillfeed
+// Requires: GameLimitsTeleport
 
 using Oxide.Core.Database;
 using Oxide.Core;
@@ -338,6 +339,20 @@ namespace Oxide.Plugins
         #endregion
 
         #region Helpers
+        public static bool HasMinimumVipRank(PlayerInfo info, string rank)
+        {
+            if (rank == "vip" && (info.HasSubscription("vip") || info.HasSubscription("vip_pro") || info.HasSubscription("vip_elite")))
+                return true;
+
+            if (rank == "vip_pro" && (info.HasSubscription("vip_pro") || info.HasSubscription("vip_elite")))
+                return true;
+
+            if (rank == "vip_elite" && (info.HasSubscription("vip_elite")))
+                return true;
+
+            return false;
+        }
+
         public static bool HasFriend(ulong player, ulong friendId)
         {
             if (!playerFriends.ContainsKey(player) || !playerFriends[player].Contains(friendId))
@@ -607,7 +622,7 @@ namespace Oxide.Plugins
                     if (ai == null)
                         return false;
 
-                    ai.SetInitialDestination(player.transform.position + new Vector3(0, 1f, 0));
+                    ai.SetInitialDestination(player.transform.position + new Vector3(0, 25f, 0));
 
                     helicopter.Spawn();
                     break;
