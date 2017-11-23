@@ -1,0 +1,13 @@
+stages:
+  - deploy
+
+testing:
+  type: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  script:
+    - docker info
+    - docker login -u gitlab-ci-token -p $CI_JOB_TOKEN registry.zdev.com
+    - docker build -t $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME .
+    - docker push $CI_REGISTRY_IMAGE:$CI_COMMIT_REF_NAME
