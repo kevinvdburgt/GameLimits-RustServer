@@ -37,6 +37,7 @@
     <Compile Include="GameLimitsChat.cs" />
     <Compile Include="GameLimitsFriends.cs" />
     <Compile Include="GameLimitsInfo.cs" />
+    <Compile Include="GameLimitsKillfeed.cs" />
     <Compile Include="GameLimitsKits.cs" />
     <Compile Include="GameLimitsPlaytime.cs" />
     <Compile Include="GameLimitsRemove.cs" />

@@ -125,7 +125,7 @@ namespace Oxide.Plugins
             if (args.Length < 1 || args.Length == 1 && !(args[0].ToLower() == "list"))
             {
                 GetFriends(player, friends =>
-                       CreateGUI(player, friends, 0), true);
+                    CreateGUI(player, friends, 0), true);
                 SendReply(player, syntax);
                 return;
             }
@@ -370,7 +370,7 @@ namespace Oxide.Plugins
 
                 if (includeNonFriends)
                     foreach (BasePlayer p in BasePlayer.activePlayerList)
-                        if (player != null)
+                        if (player != null && p != player && !HasFriend(player.userID, p.userID))
                             friends.Add(new FriendItem()
                             {
                                 userId = p.userID,
@@ -393,7 +393,7 @@ namespace Oxide.Plugins
             var container = UI.CreateElementContainer("gl_friends", "0 0 0 0.99", "0.35 0.05", "0.65 0.95", true);
 
             // Close button
-            UI.CreateButton(ref container, "gl_friends", "0.8 0.2 0.2 1", "Close", 12, "0.1 0", "0.9 0.04", "friend close");
+            UI.CreateButton(ref container, "gl_friends", "0.8 0.2 0.2 1", "Close", 12, $"{(index > 0 ? "0.1" : "0")} 0", $"{(players.Count - (index * 15) > 15 ? "0.9" : "0.997")} 0.04", "friend close");
 
             // Index buttons
             if (index > 0)
@@ -424,7 +424,7 @@ namespace Oxide.Plugins
             Vector2 min = ori - off;
             Vector2 max = min + dim;
 
-            UI.CreatePanel(ref container, "gl_friends", "1 1 1 0.02", $"{min.x} {min.y}", $"{max.x} {max.y}");
+            UI.CreatePanel(ref container, "gl_friends", "1 1 1 0.01", $"{min.x} {min.y}", $"{max.x} {max.y}");
             UI.CreateLabel(ref container, "gl_friends", $"{friend.displayName}{(friend.isFriend && friend.isOnline ? "  <color=#0D0>(Online)</color>" : "")}", 12, $"{min.x + 0.02} {min.y}", $"{max.x} {max.y}", TextAnchor.MiddleLeft, "1 1 1 1", 0);
 
             if (friend.isFriend)

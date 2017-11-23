@@ -14,6 +14,7 @@ namespace Oxide.Plugins
     {
         private readonly int triggerLayer = LayerMask.GetMask("Trigger");
         private Dictionary<ulong, Dictionary<string, Vector3>> homes = new Dictionary<ulong, Dictionary<string, Vector3>>();
+        private List<TeleportRequestInfo> teleportRequests = new List<TeleportRequestInfo>();
 
         #region Functions
         private string CanTeleportFrom(BasePlayer player)
@@ -83,8 +84,8 @@ namespace Oxide.Plugins
 
             homes[player.userID].Add(name, player.transform.position);
 
-            MInsert(MBuild("INSERT INTO homes (user_id, name, x, y, z) VALUES (@0, @1, @2, @3, @4);", 
-                info.id, 
+            MInsert(MBuild("INSERT INTO homes (user_id, name, x, y, z) VALUES (@0, @1, @2, @3, @4);",
+                info.id,
                 name,
                 player.transform.position.x,
                 player.transform.position.y,
@@ -129,7 +130,7 @@ namespace Oxide.Plugins
             int cooldown = info.HasCooldown("teleport_home");
             if (cooldown > 0)
             {
-                player.ChatMessage($"<color=#d00>ERROR</color> Teleport to home cooldown \"{cooldown}\" seconds.");
+                player.ChatMessage($"<color=#d00>ERROR</color> Teleport cooldown {FormatTime(cooldown)}.");
                 return;
             }
 
@@ -152,23 +153,20 @@ namespace Oxide.Plugins
             Teleport(player, to, 10);
         }
 
-        private void Teleport(BasePlayer player, Vector3 target, float countdown = 0)
+        private void Teleport(BasePlayer player, Vector3 target, int countdown = 0)
         {
+            if (player == null)
+                return;
+
             if (countdown > 0)
             {
-                player.ChatMessage($"Teleporting in {(int)countdown} seconds.");
-                timer.Once(countdown, () =>
-                    Teleport(player, target));
+                player.ChatMessage($"Teleporting in {FormatTime(countdown)}");
+                timer.Once(countdown, () => Teleport(player, target));
                 return;
             }
 
             PlayerInfo info = playerInfo[player.userID];
-
-            if (HasMinimumVipRank(info, "vip"))
-                info.AddCooldown("teleport_home", 60 * 5);
-            else
-                info.AddCooldown("teleport_home", 60 * 20);
-
+            
             string teleportFrom = CanTeleportFrom(player);
             if (teleportFrom != null)
             {
@@ -182,6 +180,11 @@ namespace Oxide.Plugins
                 player.ChatMessage($"<color=#d00>ERROR</color> You cannot teleport to your home ({teleportTo}).");
                 return;
             }
+
+            if (HasMinimumVipRank(info, "vip"))
+                info.AddCooldown("teleport_home", 60 * 5);
+            else
+                info.AddCooldown("teleport_home", 60 * 20);
 
             if (player.net?.connection != null)
                 player.ClientRPCPlayer(null, player, "StartLoading");
@@ -251,10 +254,12 @@ namespace Oxide.Plugins
                 Dictionary<string, Vector3> playerHomes = new Dictionary<string, Vector3>();
 
                 foreach (var record in records)
+                {
                     playerHomes.Add(Convert.ToString(record["name"]), new Vector3(
                         Convert.ToSingle(record["x"]),
                         Convert.ToSingle(record["y"]),
                         Convert.ToSingle(record["z"])));
+                }
 
                 homes.Add(player.userID, playerHomes);
 
@@ -264,7 +269,12 @@ namespace Oxide.Plugins
         #endregion
 
         #region Classes
-
+        private class TeleportRequestInfo
+        {
+            public BasePlayer player;
+            public BasePlayer target;
+            public Timer timeoutTimer;
+        }
         #endregion
 
         #region Server Events
@@ -479,14 +489,13 @@ namespace Oxide.Plugins
         }
         #endregion
 
-
         #region GUI
         void CreateHomeGUI(BasePlayer player, int index = 0)
         {
             DestroyHomeGUI(player);
 
             PlayerInfo info = playerInfo[player.userID];
-            
+
             // Main container
             var container = UI.CreateElementContainer("gl_teleport_home", "0 0 0 0.99", "0.35 0.05", "0.65 0.95", true);
 
@@ -498,7 +507,7 @@ namespace Oxide.Plugins
                 UI.CreateButton(ref container, "gl_teleport_home", "0.12 0.38 0.57 1", "Next", 12, "0.91 0", "0.997 0.04", $"teleportgl home open {index + 1}");
 
             int i = 0;
-            foreach (KeyValuePair <string, Vector3> home in homes[player.userID])
+            foreach (KeyValuePair<string, Vector3> home in homes[player.userID].Skip(index * 15).Take(15))
             {
                 Vector2 dim = new Vector2(1f, 0.05f);
                 Vector2 ori = new Vector2(0.0f, 1f);
@@ -517,10 +526,10 @@ namespace Oxide.Plugins
             }
 
             // Add button
-            UI.CreateButton(ref container, "gl_teleport_home", "0.12 0.38 0.57 1", $"Add home {i + 1}", 12, "0.1 0", "0.49 0.04", $"teleportgl home add {i + 1}");
+            UI.CreateButton(ref container, "gl_teleport_home", "0.12 0.38 0.57 1", $"Add home {i + 1}", 12, $"{(index > 0 ? "0.1" : "0")} 0", "0.49 0.04", $"teleportgl home add {i + 1}");
 
             // Close button
-            UI.CreateButton(ref container, "gl_teleport_home", "0.8 0.2 0.2 1", "Close", 12, "0.51 0", "0.9 0.04", "teleportgl home close");
+            UI.CreateButton(ref container, "gl_teleport_home", "0.8 0.2 0.2 1", "Close", 12, "0.51 0", $"{(homes[player.userID].Count - (index * 15) > 15 ? "0.9" : "0.997")} 0.04", "teleportgl home close");
 
             CuiHelper.AddUi(player, container);
         }

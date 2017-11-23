@@ -57,7 +57,7 @@ namespace Oxide.Plugins
                     if (info.HasSubscription($"kit_{item.Key}") || AllowKit(player, item.Key))
                     {
                         if (info.HasCooldown($"kit_{item.Key}") > 0)
-                            kits += $" <color=#aaa>cooldown: {(info.HasCooldown($"kit_{ item.Key}"))} seconds</color>";
+                            kits += $" <color=#aaa>cooldown: {FormatTime(info.HasCooldown($"kit_{ item.Key}"))} seconds</color>";
                         else
                             kits += $" <color=#0d0>available!</color>";
                     }
@@ -237,7 +237,7 @@ namespace Oxide.Plugins
                 if (info.HasSubscription($"kit_{item.Key}") || AllowKit(player, item.Key))
                 {
                     if (info.HasCooldown($"kit_{item.Key}") > 0)
-                        available += $"<color=#aaa>Cooldown: {(info.HasCooldown($"kit_{ item.Key}"))} seconds</color>";
+                        available += $"<color=#aaa>Cooldown: {FormatTime(info.HasCooldown($"kit_{ item.Key}"))}</color>";
                     else
                         available += $"<color=#0d0>Available!</color>";
                 }

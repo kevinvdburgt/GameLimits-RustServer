@@ -54,10 +54,7 @@ namespace Oxide.Plugins
 
         private void OnServerInitialized()
         {
-            List<ItemDefinition> items = ItemManager.itemList;
-            string result = "Stack changes:";
-
-            foreach (ItemDefinition item in items)
+            foreach (ItemDefinition item in ItemManager.itemList)
             {
                 // Do not stack unstackable items
                 if (item.condition.enabled && item.condition.max > 0)
@@ -65,13 +62,8 @@ namespace Oxide.Plugins
 
                 // Set the stacked item
                 if (stacks.ContainsKey(item.shortname))
-                {
                     item.stackable = stacks[item.shortname];
-                    result += $"\n[{item.shortname}:{item.stackable}] ";
-                }
             }
-
-            Puts(result);
         }
     }
 }

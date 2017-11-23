@@ -39,37 +39,25 @@ namespace Oxide.Plugins
         #endregion
 
         #region Configurations
-        //private static string MYSQL_HOST = "rust.gamelimits.com";
-        //private static string MYSQL_USER = "gamelimits";
-        //private static string MYSQL_PASS = "osduhfgp9as7d8yasd";
-        //private static string MYSQL_DB = "gamelimits";
-        private static string MYSQL_HOST = "192.168.1.101";
-        private static string MYSQL_USER = "root";
-        private static string MYSQL_PASS = "";
-        private static string MYSQL_DB = "project_rust_gl";
+        private static string MYSQL_HOST = "rust.gamelimits.com";
+        private static string MYSQL_USER = "gamelimits";
+        private static string MYSQL_PASS = "osduhfgp9as7d8yasd";
+        private static string MYSQL_DB = "gamelimits";
+        //private static string MYSQL_HOST = "192.168.1.101";
+        //private static string MYSQL_USER = "root";
+        //private static string MYSQL_PASS = "";
+        //private static string MYSQL_DB = "project_rust_gl";
         #endregion
 
         #region Classes
         public class PlayerInfo
         {
-            /// <summary>
-            /// The database player id
-            /// </summary>
             public int id;
-
-            /// <summary>
-            /// Set to true, when the player is an admin
-            /// </summary>
             public bool admin = false;
-
-            /// <summary>
-            /// The amount of reward points
-            /// </summary>
             public int rewardPoints = 0;
+            public Dictionary<string, int> subscriptions = new Dictionary<string, int>();
+            public Dictionary<string, int> cooldowns = new Dictionary<string, int>();
 
-            /// <summary>
-            /// Load the reward points from the database
-            /// </summary>
             public void LoadRewardPoints(Action callback = null)
             {
                 MQuery(MBuild("SELECT SUM(points) AS points FROM reward_points WHERE user_id=@0;", id), records =>
@@ -87,12 +75,6 @@ namespace Oxide.Plugins
                 });
             }
 
-            /// <summary>
-            /// Give the user a amount of reward points!
-            /// </summary>
-            /// <param name="amout"></param>
-            /// <param name="message"></param>
-            /// <param name="callback"></param>
             public void GiveRewardPoints(int amount, string message = null, Action callback = null)
             {
                 MInsert(MBuild("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", id, amount, message), done => {
@@ -103,16 +85,6 @@ namespace Oxide.Plugins
                 });
             }
 
-            /// <summary>
-            /// A dictionary with subscription names and their expiry dates
-            /// </summary>
-            public Dictionary<string, int> subscriptions = new Dictionary<string, int>();
-
-            /// <summary>
-            /// Check if the user has an active subscription on his name
-            /// </summary>
-            /// <param name="name"></param>
-            /// <returns></returns>
             public bool HasSubscription(string name)
             {
                 int timestamp = (int)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
@@ -123,11 +95,6 @@ namespace Oxide.Plugins
                 return false;
             }
 
-            /// <summary>
-            /// Add a subscription to the user
-            /// </summary>
-            /// <param name="name"></param>
-            /// <param name="seconds"></param>
             public void AddSubscription(string name, int seconds)
             {
                 MQuery(MBuild("SELECT id, UNIX_TIMESTAMP(expires_at) AS expires_at FROM subscriptions WHERE user_id=@0 AND name=@1 AND expires_at > NOW();", id, name), records =>
@@ -140,9 +107,6 @@ namespace Oxide.Plugins
                 });
             }
 
-            /// <summary>
-            /// Load the user subscriptions
-            /// </summary>
             public void LoadSubscriptions()
             {
                 MQuery(MBuild("SELECT name, UNIX_TIMESTAMP(expires_at) AS expires_at FROM subscriptions WHERE user_id=@0 AND expires_at > NOW();", id), records =>
@@ -152,9 +116,6 @@ namespace Oxide.Plugins
                         subscriptions.Add(Convert.ToString(record["name"]), Convert.ToInt32(record["expires_at"]));
                 });
             }
-
-
-            public Dictionary<string, int> cooldowns = new Dictionary<string, int>();
 
             public int HasCooldown(string name)
             {
@@ -339,6 +300,25 @@ namespace Oxide.Plugins
         #endregion
 
         #region Helpers
+        public static string FormatTime(int seconds)
+        {
+            TimeSpan time = TimeSpan.FromSeconds(seconds);
+
+            if (time.Days > 0)
+                return string.Format("{0} days", time.Days);
+
+            if (time.Hours > 0)
+                return string.Format("{0:00} hours", time.Hours);
+
+            if (time.Minutes > 0)
+                return string.Format("{0:00} minutes", time.Minutes);
+
+            if (time.Seconds > 0)
+                return string.Format("{0:00} seconds", time.Seconds);
+
+            return "now";
+        }
+
         public static bool HasMinimumVipRank(PlayerInfo info, string rank)
         {
             if (rank == "vip" && (info.HasSubscription("vip") || info.HasSubscription("vip_pro") || info.HasSubscription("vip_elite")))
@@ -459,9 +439,6 @@ namespace Oxide.Plugins
         #endregion
 
         #region Functions
-        /// <summary>
-        /// Setup and create a MySQL connection
-        /// </summary>
         void MySQLSetup()
         {
             Puts("Connecting to the database...");
@@ -487,9 +464,6 @@ namespace Oxide.Plugins
             Puts("Connection successfull");
         }
 
-        /// <summary>
-        /// Load all friends and place them in the player friend dictionary
-        /// </summary>
         void LoadFriends()
         {
             Puts("Loading friends list from the database..");
@@ -516,11 +490,6 @@ namespace Oxide.Plugins
             });
         }
 
-        /// <summary>
-        /// Load the selected player from the database, if it doenst exists create one
-        /// </summary>
-        /// <param name="player">The player object</param>
-        /// <param name="created">Pass true when the player is created!</param>
         void LoadPlayer(BasePlayer player, bool created = false)
         {
             if (!created)
@@ -633,4 +602,3 @@ namespace Oxide.Plugins
         #endregion
     }
 }
-

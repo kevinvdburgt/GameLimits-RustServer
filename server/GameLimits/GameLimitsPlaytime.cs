@@ -137,7 +137,6 @@ namespace Oxide.Plugins
         }
         #endregion
 
-
         #region Classes
         private class TimeInfo
         {
