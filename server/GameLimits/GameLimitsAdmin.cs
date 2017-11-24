@@ -43,6 +43,12 @@ namespace Oxide.Plugins
                     $"Online player info:{onlinePlayerInfo}");
             }
         }
+
+        [ChatCommand("a")]
+        private void OnChatCommandTest(BasePlayer player, string command, string[] args)
+        {
+            
+        }
         #endregion
 
         #region GUI

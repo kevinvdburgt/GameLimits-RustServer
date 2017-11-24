@@ -12,6 +12,7 @@
 // Requires: GameLimitsAdmin
 // Requires: GameLimitsKillfeed
 // Requires: GameLimitsTeleport
+// Requires: GameLimitsTips
 
 using Oxide.Core.Database;
 using Oxide.Core;
@@ -20,6 +21,7 @@ using System;
 using Oxide.Game.Rust.Cui;
 using UnityEngine;
 using System.Globalization;
+using System.Linq;
 
 namespace Oxide.Plugins
 {
@@ -37,6 +39,7 @@ namespace Oxide.Plugins
         public static Dictionary<ulong, PlayerInfo> playerInfo = new Dictionary<ulong, PlayerInfo>();
         public static Dictionary<ulong, HashSet<ulong>> playerFriends = new Dictionary<ulong, HashSet<ulong>>();
         #endregion
+
 
         #region Configurations
         private static string MYSQL_HOST = "rust.gamelimits.com";
@@ -297,6 +300,93 @@ namespace Oxide.Plugins
                 });
             }
         }
+
+        public class InventoryData
+        {
+            public ItemData[] container = new ItemData[0];
+
+            public InventoryData() { }
+
+            public InventoryData(ItemContainer container)
+            {
+                this.container = GetItems(container).ToArray();
+            }
+
+            private IEnumerable<ItemData> GetItems(ItemContainer container)
+            {
+                return container.itemList.Select(item => new ItemData
+                {
+                    itemid = item.info.itemid,
+                    amount = item.amount,
+                    ammo = (item.GetHeldEntity() as BaseProjectile)?.primaryMagazine.contents ?? 0,
+                    ammotype = (item.GetHeldEntity() as BaseProjectile)?.primaryMagazine.ammoType.shortname ?? null,
+                    position = item.position,
+                    skin = item.skin,
+                    condition = item.condition,
+                    instanceData = item.instanceData ?? null,
+                    blueprintTarget = item.blueprintTarget,
+                    contents = item.contents?.itemList.Select(subitem => new ItemData
+                    {
+                        itemid = subitem.info.itemid,
+                        amount = subitem.amount,
+                        condition = subitem.condition
+                    }).ToArray()
+                });
+            }
+
+            public void RestoreItems(ref ItemContainer itemContainer)
+            {
+                for (int i = 0; i < container.Length; i++)
+                {
+                    Item item = CreateItem(container[i]);
+                    item.MoveToContainer(itemContainer, container[i].position, true);
+                }
+            }
+
+            private Item CreateItem(ItemData itemData)
+            {
+                Item item = ItemManager.CreateByItemID(itemData.itemid, itemData.amount, itemData.skin);
+                item.condition = itemData.condition;
+                if (itemData.instanceData != null)
+                    item.instanceData = itemData.instanceData;
+                item.blueprintTarget = itemData.blueprintTarget;
+                var weapon = item.GetHeldEntity() as BaseProjectile;
+                if (weapon != null)
+                {
+                    if (!string.IsNullOrEmpty(itemData.ammotype))
+                        weapon.primaryMagazine.ammoType = ItemManager.FindItemDefinition(itemData.ammotype);
+                    weapon.primaryMagazine.contents = itemData.ammo;
+                }
+                if (itemData.contents != null)
+                {
+                    foreach (var contentData in itemData.contents)
+                    {
+                        var newContent = ItemManager.CreateByItemID(contentData.itemid, contentData.amount);
+                        if (newContent != null)
+                        {
+                            newContent.condition = contentData.condition;
+                            newContent.MoveToContainer(item.contents);
+                        }
+                    }
+                }
+                return item;
+            }
+
+            public class ItemData
+            {
+                public int itemid;
+                public ulong skin;
+                public int amount;
+                public float condition;
+                public int ammo;
+                public string ammotype;
+                public int position;
+                public int blueprintTarget;
+                public ProtoBuf.Item.InstanceData instanceData;
+                public ItemData[] contents;
+            }
+        }
+
         #endregion
 
         #region Helpers
@@ -360,6 +450,9 @@ namespace Oxide.Plugins
                     players.Add(player);
             return players;
         }
+
+        private static void LoadData<T>(ref T data, string filename) => data = Core.Interface.Oxide.DataFileSystem.ReadObject<T>(filename);
+        private static void SaveData<T>(T data, string filename) => Core.Interface.Oxide.DataFileSystem.WriteObject(filename, data);
         #endregion
 
         #region MySQL Helpers

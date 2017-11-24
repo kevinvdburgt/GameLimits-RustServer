@@ -5,6 +5,8 @@ using System;
 using System.Linq;
 using Oxide.Game.Rust.Cui;
 using System.Reflection;
+using Oxide.Core.Configuration;
+using Oxide.Core;
 using Newtonsoft.Json;
 
 namespace Oxide.Plugins
@@ -15,6 +17,10 @@ namespace Oxide.Plugins
     public class GameLimitsCars : RustPlugin
     {
         static GameLimitsCars plug;
+
+        readonly DynamicConfigFile dataFile = Interface.Oxide.DataFileSystem.GetFile("cardata");
+
+        Dictionary<uint, InventoryData> trunkInventory = new Dictionary<uint, InventoryData>();
 
         /// <summary>
         /// The list with spawn locations
@@ -61,11 +67,15 @@ namespace Oxide.Plugins
         private void OnServerInitialized()
         {
             plug = this;
-
+            
             // Find spawn locations based on the spawn whitelist of monuments
             foreach (MonumentInfo monument in UnityEngine.Object.FindObjectsOfType<MonumentInfo>())
                 if (spawnList.Contains<string>(monument.name))
                     spawnLocations.Add(monument.transform.position + new Vector3(25f, 25f, 25f));
+
+            // Restore the trunk information
+            trunkInventory.Clear();
+            LoadData(ref trunkInventory, "GameLimitsCars");
 
             // Restore the car controller to all cars
             foreach (BaseCar car in UnityEngine.Object.FindObjectsOfType<BaseCar>())
@@ -77,17 +87,17 @@ namespace Oxide.Plugins
 
         private void Unload()
         {
+            trunkInventory.Clear();
+
             foreach (CarController car in UnityEngine.Object.FindObjectsOfType<CarController>())
             {
-                car.container.inventory.itemList.ForEach((Item i) =>
-                {
-                    Puts($"Car inventory: {i.name}");
-                });
-
-
+                trunkInventory.Add(car.entity.net.ID, new InventoryData(car.container.inventory));
                 UnityEngine.Object.Destroy(car);
             }
+
+            SaveData(trunkInventory, "GameLimitsCars"); 
         }
+
 
         private void OnPlayerInput(BasePlayer player, InputState input)
         {
@@ -203,6 +213,9 @@ namespace Oxide.Plugins
 
             return entity;
         }
+
+        private void LoadData<T>(ref T data, string filename) => data = Core.Interface.Oxide.DataFileSystem.ReadObject<T>(filename);
+        private void SaveData<T>(T data, string filename) => Core.Interface.Oxide.DataFileSystem.WriteObject(filename, data);
         #endregion
 
         #region Classes
@@ -271,7 +284,7 @@ namespace Oxide.Plugins
             private void CreateTrunk()
             {
                 container = (StorageContainer)GameManager.server.CreateEntity(fridgePrefab, entity.transform.position, entity.transform.rotation, false);
-                container.enableSaving = false;
+                container.enableSaving = true;
                 container.skinID = (ulong)886416273;
                 container.Spawn();
 
@@ -287,6 +300,9 @@ namespace Oxide.Plugins
                 container.displayHealth = false;
                 container.pickup.enabled = false;
                 container.onlyAcceptCategory = ItemCategory.All;
+
+                if (plug.trunkInventory.ContainsKey(entity.net.ID))
+                    plug.trunkInventory[entity.net.ID].RestoreItems(ref container.inventory);
             }
 
             public bool HasDriver() => player != null;
@@ -365,8 +381,12 @@ namespace Oxide.Plugins
             {
                 EjectAllPlayers();
                 DestroyAllMounts();
-                container.Invoke("KillMessage", 0.1f);
-                Destroy(this);
+
+                BaseEntity.saveList.Remove(container);
+                if (container != null)
+                    container.Invoke("KillMessage", 0.1f);
+                //container.Invoke("KillMessage", 0.1f);
+                //Destroy(this);
             }
             #endregion
 
@@ -555,7 +575,6 @@ namespace Oxide.Plugins
             #endregion
         }
         #endregion
-
 
         #region OLD
         /*
