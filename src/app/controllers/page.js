@@ -22,4 +22,8 @@ const blog = (req, res) => {
   res.render('page/blog');
 };
 
-export default { home, rules, chatlog, blog };
+const mods = (req, res) => {
+  res.render('page/mods');
+};
+
+export default { home, rules, chatlog, blog, mods };

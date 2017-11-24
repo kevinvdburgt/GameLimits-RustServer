@@ -31,6 +31,7 @@ router.get('/', page.home);
 router.get('/rules', page.rules);
 router.get('/chatlog', page.chatlog);
 router.get('/blog', page.blog);
+router.get('/mods/:mod', page.mods);
 
 router.get('/donate', donate.show);
 router.post('/donate', donate.post);
