@@ -3,12 +3,12 @@ nav.navbar.is-dark(role='navigation' aria-label='main navigation')
     div.navbar-brand
       a.navbar-item(href='/') Rust | Game Limits
 
-      div.navbar-burger
+      div.navbar-burger.js-navbar-toggle(data-target='.js-navbar')
         span
         span
         span
 
-    div.navbar-menu
+    div.navbar-menu.js-navbar
       div.navbar-start
         a.navbar-item(href='/') Home
         //- a.navbar-item(href='/blog') Blog
@@ -40,4 +40,5 @@ nav.navbar.is-dark(role='navigation' aria-label='main navigation')
 
         else
           a.navbar-item(href='/login')
-            img(src='https://steamcommunity-a.akamaihd.net/public/images/signinthroughsteam/sits_01.png')
+            center
+              img(src='https://steamcommunity-a.akamaihd.net/public/images/signinthroughsteam/sits_01.png')
