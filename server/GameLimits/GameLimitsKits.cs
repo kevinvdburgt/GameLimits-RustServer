@@ -97,7 +97,8 @@ namespace Oxide.Plugins
                         break;
 
                     Kit(player, Convert.ToString(arg.Args[1]));
-                    DestroyGUI(player);
+
+                    CreateGUI(player, 0);
                     break;
             }
         }
