@@ -46,9 +46,10 @@ namespace Oxide.Plugins
             pdata.AddCooldown("test", 120);
 
 
-            AddTimedNotification(player, "raid", "COMBAT BLOCK", 30, "0.8 0 0.02 1");
-            AddTimedNotification(player, "raid", "Cooldown: Teleport Home", 60 * 5, "0.8 0 0.02 1");
-            // AddTimedNotification(player, "remove", "Remove Tool", 30, "0.3 0.3 0.3 1");
+            AddTimedNotification(player, "raid", "RAID BLOCK", 60 * 5, "0.8 0 0.02 1");
+            AddTimedNotification(player, "raid2", "COMBAT BLOCK", 30, "0.8 0 0.02 1");
+            AddTimedNotification(player, "raid3", "Cooldown: TP Home", 60 * 5, "0.8 0 0.02 1");
+             AddTimedNotification(player, "remove", "Remove Tool", 30, "0.3 0.3 0.3 1");
         }
         [ChatCommand("aa")]
         private void OnChatCommandAa(BasePlayer player, string command, string[] args)

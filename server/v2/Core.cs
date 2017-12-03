@@ -9,6 +9,7 @@
 // Requires: Shop
 // Requires: Teleport
 // Requires: Skills
+// Requires: RemoveTool
 
 using System.Collections.Generic;
 
