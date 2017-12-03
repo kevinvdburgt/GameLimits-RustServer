@@ -169,6 +169,11 @@ namespace Oxide.Plugins
 
         public static class TimeFormat
         {
+            public static string Short(int seconds)
+            {
+                return Short(TimeSpan.FromSeconds(seconds));
+            }
+
             public static string Short(TimeSpan ts)
             {
                 if (ts.Days > 0)
@@ -182,6 +187,25 @@ namespace Oxide.Plugins
 
                 return string.Format("{0}S", ts.TotalSeconds);
             }
+
+            public static string Long(int seconds)
+            {
+                return Long(TimeSpan.FromSeconds(seconds));
+            }
+
+            public static string Long(TimeSpan ts)
+            {
+                if (ts.Days > 0)
+                    return string.Format("{0} Days, {1} Hours, {2} Minutes and {3} Seconds ", ts.Days, ts.Hours, ts.Minutes, ts.Seconds);
+
+                if (ts.Hours > 0)
+                    return string.Format("{0} Hours, {1} Minutes and {2} Seconds ", ts.Hours, ts.Minutes, ts.Seconds);
+
+                if (ts.Minutes > 0)
+                    return string.Format("{0} Minutes and {1} Seconds ", ts.Minutes, ts.Seconds);
+
+                return string.Format("{0} Seconds ", ts.Seconds);
+            }
         }
         #endregion
 
@@ -194,6 +218,20 @@ namespace Oxide.Plugins
         public static int Timestamp()
         {
             return (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
+        }
+
+        public static bool HasMinimumVipRank(PlayerData.PData pdata, string rank)
+        {
+            if (rank == "vip" && (pdata.HasSubscription("vip") || pdata.HasSubscription("vip_pro") || pdata.HasSubscription("vip_elite")))
+                return true;
+
+            if (rank == "vip_pro" && (pdata.HasSubscription("vip_pro") || pdata.HasSubscription("vip_elite")))
+                return true;
+
+            if (rank == "vip_elite" && (pdata.HasSubscription("vip_elite")))
+                return true;
+
+            return false;
         }
         #endregion
     }

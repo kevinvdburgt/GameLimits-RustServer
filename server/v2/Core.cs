@@ -7,6 +7,7 @@
 // Requires: Stacks
 // Requires: Spawn
 // Requires: Shop
+// Requires: Teleport
 
 using System.Collections.Generic;
 

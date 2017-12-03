@@ -58,6 +58,8 @@ namespace Oxide.Plugins
                 datas.Add(player.userID, pdata);
 
                 pdata.LoadRewardPoints();
+                pdata.LoadSubscriptions();
+                pdata.LoadCooldowns();
 
                 plug.Puts($"Player loaded (id: {pdata.id})");
             });
@@ -93,6 +95,8 @@ namespace Oxide.Plugins
         {
             public uint id = 0;
             public int rewardPoints = 0;
+            public Dictionary<string, int> subscriptions = new Dictionary<string, int>();
+            public Dictionary<string, int> cooldowns = new Dictionary<string, int>();
 
             public void LoadRewardPoints(Action<int> callback = null)
             {
@@ -113,7 +117,6 @@ namespace Oxide.Plugins
                     callback?.Invoke(points);
                 });
             }
-
             public void GiveRewardPoints(int amount, string message = null, Action<int> callback = null)
             {
                 Database.Insert(Database.Build("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", id, amount, message), done =>
@@ -122,6 +125,61 @@ namespace Oxide.Plugins
                     {
                         callback?.Invoke(points);
                     });
+                });
+            }
+
+            public bool HasSubscription(string name)
+            {
+                return subscriptions.ContainsKey(name) && subscriptions[name] > Helper.Timestamp();
+            }
+            public void AddSubscription(string name, int seconds)
+            {
+                Database.Query(Database.Build("SELECT id, UNIX_TIMESTAMP(expires_at) AS expires_at FROM subscriptions WHERE user_id=@0 AND name=@1 AND expires_at > NOW();", id, name), records =>
+                {
+                    int time = Helper.Timestamp() + seconds;
+                    if (records.Count == 0)
+                        Database.Insert(Database.Build("INSERT INTO subscriptions (user_id, name, expires_at) VALUES (@0, @1, FROM_UNIXTIME(@2));", id, name, time), index => LoadSubscriptions());
+                    else
+                        Database.NonQuery(Database.Build("UPDATE subscriptions SET expires_at=FROM_UNIXTIME(@0) WHERE id=@1 LIMIT 1;", Convert.ToInt32(records[0]["expires_at"]) + seconds, Convert.ToInt32(records[0]["id"])), index => LoadSubscriptions());
+                });
+            }
+            public void LoadSubscriptions()
+            {
+                Database.Query(Database.Build("SELECT name, UNIX_TIMESTAMP(expires_at) AS expires_at FROM subscriptions WHERE user_id=@0 AND expires_at > NOW();", id), records =>
+                {
+                    subscriptions.Clear();
+                    foreach (var record in records)
+                        subscriptions.Add(Convert.ToString(record["name"]), Convert.ToInt32(record["expires_at"]));
+                });
+            }
+
+            public int HasCooldown(string name)
+            {
+                int timestamp = Helper.Timestamp();
+
+                if (cooldowns.ContainsKey(name) && cooldowns[name] > timestamp)
+                    return cooldowns[name] - timestamp;
+
+                return 0;
+            }
+            public void AddCooldown(string name, int seconds)
+            {
+                Database.Query(Database.Build("SELECT id, UNIX_TIMESTAMP(expires_at) AS expires_at FROM cooldowns WHERE user_id=@0 AND name=@1 AND expires_at > NOW();", id, name), records =>
+                {
+                    int time = Helper.Timestamp() + seconds;
+                    if (records.Count == 0)
+                        Database.Insert(Database.Build("INSERT INTO cooldowns (user_id, name, expires_at) VALUES (@0, @1, FROM_UNIXTIME(@2));", id, name, time), index => LoadCooldowns());
+                    else
+                        Database.NonQuery(Database.Build("UPDATE cooldowns SET expires_at=FROM_UNIXTIME(@0) WHERE id=@1 LIMIT 1;", Convert.ToInt32(records[0]["expires_at"]) + seconds, Convert.ToInt32(records[0]["id"])), index => LoadCooldowns());
+                });
+            }
+            public void LoadCooldowns()
+            {
+                Database.Query(Database.Build("SELECT name, UNIX_TIMESTAMP(expires_at) AS expires_at FROM cooldowns WHERE user_id=@0 AND expires_at > NOW();", id), records =>
+                {
+                    cooldowns.Clear();
+                    foreach (var record in records)
+                        cooldowns.Add(Convert.ToString(record["name"]), Convert.ToInt32(record["expires_at"]));
                 });
             }
         }
