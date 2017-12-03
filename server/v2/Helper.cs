@@ -166,5 +166,12 @@ namespace Oxide.Plugins
             }
         }
         #endregion
+
+        #region Functions
+        public static void ExecuteCommand(BasePlayer player, string command)
+        {
+
+        }
+        #endregion
     }
 }

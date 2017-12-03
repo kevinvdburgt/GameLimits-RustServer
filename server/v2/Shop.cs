@@ -4,6 +4,7 @@ using Oxide.Game.Rust.Cui;
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Linq;
 
 namespace Oxide.Plugins
 {
@@ -17,6 +18,12 @@ namespace Oxide.Plugins
         #region Oxide Hooks
         [ChatCommand("s")]
         private void OnChatCommandS(BasePlayer player, string command, string[] args)
+        {
+            OnChatCommandShop(player, command, args);
+        }
+
+        [ChatCommand("shop")]
+        private void OnChatCommandShop(BasePlayer player, string command, string[] args)
         {
             CreateUI(player);
         }
@@ -38,18 +45,25 @@ namespace Oxide.Plugins
                 case "category":
                     UpdateTabsUI(player, arg.GetString(1, "popular"));
                     break;
+
+                case "buy":
+                    BuyItem(player, arg.GetString(1));
+                    break;
             }
         }
         
         private void Init()
         {
-            // Test code
             foreach (BasePlayer player in BasePlayer.activePlayerList)
-            {
                 DestoryUI(player);
-            }
 
             LoadItems();
+        }
+
+        private void Unload()
+        {
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+                DestoryUI(player);
         }
         #endregion
 
@@ -58,7 +72,7 @@ namespace Oxide.Plugins
         {
             if (!Database.Ready())
             {
-                timer.In(5f, () => LoadItems());
+                timer.In(1f, () => LoadItems());
                 return;
             }
 
@@ -83,6 +97,34 @@ namespace Oxide.Plugins
                 }
 
                 Puts($"Loaded {records.Count} shop items");
+            });
+        }
+
+        private void BuyItem(BasePlayer player, string key)
+        {
+            PlayerData.PData pdata = PlayerData.Get(player);
+
+            if (player == null || pdata == null || !items.ContainsKey(key))
+                return;
+
+            ShopItem item = items[key];
+
+            pdata.LoadRewardPoints(points =>
+            {
+                if (item.price > points)
+                {
+                    UpdateStatusUI(player, "<color=#B70E30>Not enough Reward Points</color> visit https://rust.gamelimits.com/ to buy Reward Points.");
+                    return;
+                }
+
+                pdata.GiveRewardPoints(-item.price, $"Bought {item.name} from the shop", newPoints =>
+                {
+                    string[] commands = item.command.Split('|');
+                    foreach (string command in commands)
+                        Helper.ExecuteCommand(player, command);
+
+                    UpdateStatusUI(player, $"<color=#0E84B7>Bought</color> {item.name}");
+                });
             });
         }
         #endregion
@@ -172,6 +214,83 @@ namespace Oxide.Plugins
             }
 
             Helper.UI.Add(player, container);
+
+            UpdateItemsUI(player, category);
+        }
+
+        public void UpdateItemsUI(BasePlayer player, string category)
+        {
+            if (player == null)
+                return;
+
+            Helper.UI.Destroy(player, "ui_shop_items");
+
+            CuiElementContainer container = Helper.UI.Container("ui_shop_items", "0 0 0 0", "0 0.02", "0.999 0.965", false, "ui_shop");
+
+            // Filter out the items that belongs to the given category
+            Dictionary<string, ShopItem> filteredItems = items.Where(item => item.Value.category == category).ToDictionary(p => p.Key, p => p.Value);
+
+            // The error message, when something is wrong..
+            string errorMessage = "";
+
+            // Check if there are no items filtered out
+            if (filteredItems.Count == 0)
+                errorMessage += "There are not items in this category\n";
+
+            // Check if there is a mixed type
+            short type = -1;
+            foreach (KeyValuePair<string, ShopItem> item in filteredItems)
+                if (type == -1)
+                    type = item.Value.type;
+                else if (type != item.Value.type)
+                    errorMessage += "Mixed shop items types\n";
+
+            // Render the result
+            if (errorMessage.Length > 0)
+                Helper.UI.Label(ref container, "ui_shop_items", "1 1 1 1", errorMessage, 12, "0 0", "1 1");
+            else
+            {
+                int index = 0;
+                foreach (KeyValuePair<string, ShopItem> item in filteredItems)
+                    if (type == ShopItem.Type.LIST)
+                        BuildItemListUI(ref container, index++, item);
+                    else if (type == ShopItem.Type.GRID)
+                        BuildItemGridUI(ref container, index++, item);
+            }
+
+            Helper.UI.Add(player, container);
+        }
+
+        public void BuildItemListUI(ref CuiElementContainer container, int index, KeyValuePair<string, ShopItem> item)
+        {
+            Vector2 dimension = new Vector2(0.989f, 0.06f);
+            Vector2 origin = new Vector2(0.005f, 0.994f);
+            Vector2 offset = new Vector2(0f, (0.012f + dimension.y) * (index + 1));
+            Vector2 min = origin - offset;
+            Vector2 max = min + dimension;
+
+            Helper.UI.Panel(ref container, "ui_shop_items", "1 1 1 0.02", $"{min.x} {min.y}", $"{max.x} {max.y}");
+            Helper.UI.Label(ref container, "ui_shop_items", "1 1 1 1", item.Value.name, 11, $"{min.x + 0.012} {min.y + 0.026}", $"{max.x} {max.y}", TextAnchor.MiddleLeft);
+            Helper.UI.Label(ref container, "ui_shop_items", "0.7 0.7 0.7 1", item.Value.name, 11, $"{min.x + 0.012} {min.y - 0.026}", $"{max.x} {max.y}", TextAnchor.MiddleLeft);
+            Helper.UI.Button(ref container, "ui_shop_items", "0.12 0.38 0.57 1", $"Costs: {item.Value.price} RP", 12, $"{min.x + 0.9} {min.y + 0.015}", $"{max.x - 0.01} {max.y - 0.015}", $"shop buy {item.Key}");
+        }
+
+        public void BuildItemGridUI(ref CuiElementContainer container, int index, KeyValuePair<string, ShopItem> item)
+        {
+            Vector2 dimension = new Vector2(0.105f, 0.23f);
+            Vector2 origin = new Vector2(0.007f, 0.75f);
+            Vector2 offset = new Vector2((0.005f + dimension.x) * (index % 9), -((0.01f + dimension.y) * (index / 9)));
+            Vector2 min = origin + offset;
+            Vector2 max = min + dimension;
+
+            Helper.UI.Panel(ref container, "ui_shop_items", "1 1 1 0.02", $"{min.x} {min.y}", $"{max.x} {max.y}");
+            Helper.UI.Label(ref container, "ui_shop_items", "1 1 1 1", $"{item.Value.name}", 12, $"{min.x} {min.y}", $"{max.x} {max.y - 0.08}");
+            Helper.UI.Image(ref container, "ui_shop_items", item.Value.image, $"{min.x + 0.022} {min.y + 0.095}", $"{max.x - 0.022} {max.y - 0.015}");
+
+            if (item.Value.amount > 1)
+                Helper.UI.Label(ref container, "ui_shop_items", "1 1 1 1", $"{item.Value.amount}x", 12, $"{min.x} {min.y}", $"{max.x - 0.005} {max.y - 0.005}", TextAnchor.UpperRight);
+
+            Helper.UI.Button(ref container, "ui_shop_items", "0.12 0.38 0.57 1", $"Costs: {item.Value.price} RP", 12, $"{min.x + 0.01} {min.y + 0.017}", $"{max.x - 0.01} {max.y - 0.18}", $"shop buy {item.Key}");
         }
 
         public void UpdateStatusUI(BasePlayer player, string message)

@@ -57,6 +57,8 @@ namespace Oxide.Plugins
 
                 datas.Add(player.userID, pdata);
 
+                pdata.LoadRewardPoints();
+
                 plug.Puts($"Player loaded (id: {pdata.id})");
             });
         }
@@ -91,6 +93,37 @@ namespace Oxide.Plugins
         {
             public uint id = 0;
             public int rewardPoints = 0;
+
+            public void LoadRewardPoints(Action<int> callback = null)
+            {
+                Database.Query(Database.Build("SELECT SUM(points) AS points FROM reward_points WHERE user_id=@0;", id), records =>
+                {
+                    if (records.Count == 0)
+                    {
+                        callback?.Invoke(0);
+                        return;
+                    }
+
+                    int points = 0;
+                    if (records[0]["points"].ToString().Length > 0)
+                        points = Convert.ToInt32(records[0]["points"]);
+
+                    rewardPoints = points;
+
+                    callback?.Invoke(points);
+                });
+            }
+
+            public void GiveRewardPoints(int amount, string message = null, Action<int> callback = null)
+            {
+                Database.Insert(Database.Build("INSERT INTO reward_points (user_id, points, description) VALUES (@0, @1, @2);", id, amount, message), done =>
+                {
+                    LoadRewardPoints(points =>
+                    {
+                        callback?.Invoke(points);
+                    });
+                });
+            }
         }
         #endregion
     }
