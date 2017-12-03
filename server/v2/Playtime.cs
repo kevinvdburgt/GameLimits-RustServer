@@ -139,16 +139,20 @@ namespace Oxide.Plugins
             if (Helper.HasMinimumVipRank(pdata, "vip"))
                 rewardPoints = 10;
 
-            pdata.GiveRewardPoints(rewardPoints, $"You have been rewarded {rewardPoints} RP for playing on this server.");
-            player.ChatMessage($"You have been rewarded <color=#0E84B7>{rewardPoints} RP</color> for playing on this server.");
-            Puts($"[{pdata.id}:{player.UserIDString}] has been rewarded {rewardPoints} RP for playing on this server");
+            pdata.GiveRewardPoints(rewardPoints, $"You have been rewarded {rewardPoints} RP for playing on this server.", points =>
+            {
+                player.ChatMessage($"You have been rewarded <color=#0E84B7>{rewardPoints} RP</color> for playing on this server.\n" +
+                    $"You have <color=#0E84B7>{points} Reward Points (RP)</color>. Type /s to spend them in the shop");
+
+                Puts($"[{pdata.id}:{player.UserIDString}] has been rewarded {rewardPoints} RP for playing on this server (total: {points} RP)");
+            });
         }
         #endregion
 
         #region Classes
         private class TimeInfo
         {
-            public int rewardInterval = 60 * 60;
+            public int rewardInterval = 60;
             public int playTime = 0;
             public int afkTime = 0;
             public int rewardTime = 0;
