@@ -3,6 +3,7 @@ using System.Net;
 using Oxide.Game.Rust.Cui;
 using UnityEngine;
 using System.Collections.Generic;
+using System;
 
 namespace Oxide.Plugins
 {
@@ -165,12 +166,34 @@ namespace Oxide.Plugins
                 });
             }
         }
+
+        public static class TimeFormat
+        {
+            public static string Short(TimeSpan ts)
+            {
+                if (ts.Days > 0)
+                    return string.Format("{0}D {1}H", ts.Days, ts.Hours);
+
+                if (ts.Hours > 0)
+                    return string.Format("{0}H {1}M", ts.Hours, ts.Minutes);
+
+                if (ts.Minutes > 0)
+                    return string.Format("{0}M {1}S", ts.Minutes, ts.Seconds);
+
+                return string.Format("{0}S", ts.TotalSeconds);
+            }
+        }
         #endregion
 
         #region Functions
         public static void ExecuteCommand(BasePlayer player, string command)
         {
 
+        }
+
+        public static int Timestamp()
+        {
+            return (int)DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1, 0, 0, 0)).TotalSeconds;
         }
         #endregion
     }

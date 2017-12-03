@@ -1,6 +1,7 @@
 ﻿// Requires: Helper
 // Requires: Database
 // Requires: PlayerData
+// Requires: Notifications
 // Requires: Chat
 // Requires: Tips
 // Requires: Stacks
