@@ -152,7 +152,7 @@ namespace Oxide.Plugins
         #region Classes
         private class TimeInfo
         {
-            public int rewardInterval = 60;
+            public int rewardInterval = 60 * 60;
             public int playTime = 0;
             public int afkTime = 0;
             public int rewardTime = 0;

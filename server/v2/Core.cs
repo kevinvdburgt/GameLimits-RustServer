@@ -11,6 +11,7 @@
 // Requires: Skills
 // Requires: RemoveTool
 // Requires: Playtime
+// Requires: Kits
 
 using System.Collections.Generic;
 
