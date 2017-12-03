@@ -13,6 +13,8 @@ namespace Oxide.Plugins
 
     public class Teleport : RustPlugin
     {
+        private readonly int triggerLayer = LayerMask.GetMask("Trigger");
+
         private Dictionary<ulong, Dictionary<string, Vector3>> playerHomes = new Dictionary<ulong, Dictionary<string, Vector3>>();
 
         #region Oxide Hooks
@@ -202,11 +204,33 @@ namespace Oxide.Plugins
 
         private string CanTeleportToPosition(BasePlayer player, Vector3 position)
         {
+            List<Collider> colliders = Facepunch.Pool.GetList<Collider>();
+            Vis.Colliders(position, 0.1f, colliders, triggerLayer);
+            foreach (Collider collider in colliders)
+            {
+                BuildingPrivlidge tc = collider.GetComponentInParent<BuildingPrivlidge>();
+                if (tc == null)
+                    continue;
+
+                if (!tc.IsAuthed(player))
+                {
+                    Facepunch.Pool.FreeList(ref colliders);
+                    return "building blocked";
+                }
+            }
             return null;
         }
 
         private string CanTeleportToPlayer(BasePlayer player, BasePlayer target)
         {
+            if (!target.IsAlive())
+                return "dead";
+            if (target.IsWounded())
+                return "wounded";
+            if (!target.CanBuild())
+                return "building blocked";
+            if (target.IsSwimming())
+                return "swimming";
             return null;
         }
 

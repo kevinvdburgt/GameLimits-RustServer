@@ -8,6 +8,7 @@
 // Requires: Spawn
 // Requires: Shop
 // Requires: Teleport
+// Requires: Skills
 
 using System.Collections.Generic;
 
