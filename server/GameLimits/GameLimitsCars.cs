@@ -454,8 +454,8 @@ namespace Oxide.Plugins
 
                     entity.maxMountDistance = 2f;
 
-                    entity.GetComponent<DestroyOnGroundMissing>().enabled = false;
-                    entity.GetComponent<GroundWatch>().enabled = false;
+                    Destroy(entity.GetComponent<DestroyOnGroundMissing>());
+                    Destroy(entity.GetComponent<GroundWatch>());
                     entity.GetComponent<MeshCollider>().convex = true;
 
                     InvisibleMount invisibleMount = entity.gameObject.AddComponent<InvisibleMount>();

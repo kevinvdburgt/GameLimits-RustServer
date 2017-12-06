@@ -12,6 +12,8 @@
 // Requires: RemoveTool
 // Requires: Playtime
 // Requires: Kits
+// Requires: Friends
+// Requires: Cars
 
 using System.Collections.Generic;
 
@@ -48,9 +50,6 @@ namespace Oxide.Plugins
         {
             Plugins.PlayerData.Unload(player);
         }
-        #endregion
-
-        #region Functions
         #endregion
     }
 }

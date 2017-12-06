@@ -33,29 +33,6 @@ namespace Oxide.Plugins
             foreach (BasePlayer player in BasePlayer.activePlayerList)
                 DestoryUI(player);
         }
-
-        [ChatCommand("a")]
-        private void OnChatCommandA(BasePlayer player, string command, string[] args)
-        {
-            PlayerData.PData pdata = PlayerData.Get(player);
-
-            
-            int sec = pdata.HasCooldown("test");
-            Puts($"test cooldown: {sec}");
-
-            pdata.AddCooldown("test", 120);
-
-
-            AddTimedNotification(player, "raid", "RAID BLOCK", 60 * 5, "0.8 0 0.02 1");
-            AddTimedNotification(player, "raid2", "COMBAT BLOCK", 30, "0.8 0 0.02 1");
-            AddTimedNotification(player, "raid3", "Cooldown: TP Home", 60 * 5, "0.8 0 0.02 1");
-             AddTimedNotification(player, "remove", "Remove Tool", 30, "0.3 0.3 0.3 1");
-        }
-        [ChatCommand("aa")]
-        private void OnChatCommandAa(BasePlayer player, string command, string[] args)
-        {
-            RemoveTimedNotification(player, "raid");
-        }
         #endregion
 
         #region Functions

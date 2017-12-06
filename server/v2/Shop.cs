@@ -169,10 +169,10 @@ namespace Oxide.Plugins
             Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "Ammunition", 12, "0.22 0", "0.32 0.97", "shop category ammunition");
             Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "Construction", 12, "0.33 0", "0.43 0.97", "shop category construction");
             Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "Tools", 12, "0.44 0", "0.54 0.97", "shop category tools");
-            Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "Misc", 12, "0.55 0", "0.65 0.97", "shop category misc");
-            Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "Kits", 12, "0.66 0", "0.76 0.97", "shop category kits");
-            Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "VIP", 12, "0.77 0", "0.87 0.97", "shop category vip");
-            Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "VIPx", 12, "0.88 0", "0.98 0.97", "shop category vipx");
+            Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "Components", 12, "0.55 0", "0.65 0.97", "shop category components");
+            Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "Misc", 12, "0.66 0", "0.76 0.97", "shop category misc");
+            Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "Kits", 12, "0.77 0", "0.87 0.97", "shop category kits");
+            Helper.UI.Button(ref container, "ui_shop_tabs", "0.12 0.38 0.57 1", "VIP", 12, "0.88 0", "0.98 0.97", "shop category vip");
 
             switch (category)
             {
@@ -196,19 +196,19 @@ namespace Oxide.Plugins
                     Helper.UI.Panel(ref container, "ui_shop_tabs", "1 1 1 1", "0.44 0", "0.54 0.03");
                     break;
 
-                case "misc":
+                case "components":
                     Helper.UI.Panel(ref container, "ui_shop_tabs", "1 1 1 1", "0.55 0", "0.65 0.03");
                     break;
 
-                case "kits":
+                case "misc":
                     Helper.UI.Panel(ref container, "ui_shop_tabs", "1 1 1 1", "0.66 0", "0.76 0.03");
                     break;
 
-                case "vip":
+                case "kits":
                     Helper.UI.Panel(ref container, "ui_shop_tabs", "1 1 1 1", "0.77 0", "0.87 0.03");
                     break;
 
-                case "vipx":
+                case "vip":
                     Helper.UI.Panel(ref container, "ui_shop_tabs", "1 1 1 1", "0.88 0", "0.98 0.03");
                     break;
             }

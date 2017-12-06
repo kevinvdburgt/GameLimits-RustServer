@@ -4,6 +4,9 @@ using Oxide.Game.Rust.Cui;
 using UnityEngine;
 using System.Collections.Generic;
 using System;
+using System.Globalization;
+using System.Linq;
+using Oxide.Core;
 
 namespace Oxide.Plugins
 {
@@ -207,6 +210,115 @@ namespace Oxide.Plugins
                 return string.Format("{0} Seconds ", ts.Seconds);
             }
         }
+
+        public static class Chat
+        {
+            public static void Broadcast(string message)
+            {
+                foreach (BasePlayer player in BasePlayer.activePlayerList)
+                    if (player != null)
+                        player.ChatMessage(message);
+            }
+        }
+
+        public class InventoryData
+        {
+            public ItemData[] container = new ItemData[0];
+
+            public InventoryData() { }
+
+            public InventoryData(ItemContainer container)
+            {
+                this.container = GetItems(container).ToArray();
+            }
+
+            private IEnumerable<ItemData> GetItems(ItemContainer container)
+            {
+                return container.itemList.Select(item => new ItemData
+                {
+                    itemid = item.info.itemid,
+                    amount = item.amount,
+                    ammo = (item.GetHeldEntity() as BaseProjectile)?.primaryMagazine.contents ?? 0,
+                    ammotype = (item.GetHeldEntity() as BaseProjectile)?.primaryMagazine.ammoType.shortname ?? null,
+                    position = item.position,
+                    skin = item.skin,
+                    condition = item.condition,
+                    instanceData = item.instanceData ?? null,
+                    blueprintTarget = item.blueprintTarget,
+                    contents = item.contents?.itemList.Select(subitem => new ItemData
+                    {
+                        itemid = subitem.info.itemid,
+                        amount = subitem.amount,
+                        condition = subitem.condition
+                    }).ToArray()
+                });
+            }
+
+            public void RestoreItems(ref ItemContainer itemContainer)
+            {
+                for (int i = 0; i < container.Length; i++)
+                {
+                    Item item = CreateItem(container[i]);
+                    item.MoveToContainer(itemContainer, container[i].position, true);
+                }
+            }
+
+            private Item CreateItem(ItemData itemData)
+            {
+                Item item = ItemManager.CreateByItemID(itemData.itemid, itemData.amount, itemData.skin);
+                item.condition = itemData.condition;
+                if (itemData.instanceData != null)
+                    item.instanceData = itemData.instanceData;
+                item.blueprintTarget = itemData.blueprintTarget;
+                var weapon = item.GetHeldEntity() as BaseProjectile;
+                if (weapon != null)
+                {
+                    if (!string.IsNullOrEmpty(itemData.ammotype))
+                        weapon.primaryMagazine.ammoType = ItemManager.FindItemDefinition(itemData.ammotype);
+                    weapon.primaryMagazine.contents = itemData.ammo;
+                }
+                if (itemData.contents != null)
+                {
+                    foreach (var contentData in itemData.contents)
+                    {
+                        var newContent = ItemManager.CreateByItemID(contentData.itemid, contentData.amount);
+                        if (newContent != null)
+                        {
+                            newContent.condition = contentData.condition;
+                            newContent.MoveToContainer(item.contents);
+                        }
+                    }
+                }
+                return item;
+            }
+
+            public class ItemData
+            {
+                public int itemid;
+                public ulong skin;
+                public int amount;
+                public float condition;
+                public int ammo;
+                public string ammotype;
+                public int position;
+                public int blueprintTarget;
+                public ProtoBuf.Item.InstanceData instanceData;
+                public ItemData[] contents;
+            }
+        }
+
+        public static class DataStore
+        {
+            public static void Load<T>(ref T data, string filename)
+            {
+                data = Oxide.Core.Interface.Oxide.DataFileSystem.ReadObject<T>(filename);
+            }
+
+            public static void Save<T>(T data, string filename)
+            {
+                Oxide.Core.Interface.Oxide.DataFileSystem.WriteObject(filename, data);
+            }
+        }
         #endregion
 
         #region Functions
@@ -232,6 +344,23 @@ namespace Oxide.Plugins
                 return true;
 
             return false;
+        }
+
+        public static List<BasePlayer> SearchOnlinePlayers(string query)
+        {
+            List<BasePlayer> players = new List<BasePlayer>();
+
+            if (string.IsNullOrEmpty(query))
+                return players;
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+                if (player.UserIDString.Equals(query))
+                    players.Add(player);
+                else if (!string.IsNullOrEmpty(player.displayName) && player.displayName.Contains(query, CompareOptions.IgnoreCase))
+                    players.Add(player);
+                else if (player.net?.connection != null && player.net.connection.ipaddress.Equals(query))
+                    players.Add(player);
+
+            return players;
         }
         #endregion
     }

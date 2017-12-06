@@ -58,9 +58,7 @@ namespace Oxide.Plugins
 
             string message = $"<color=#5a0>[TIP]</color> <color=#C6C3BF>{tips[id]}</color>";
 
-            foreach (BasePlayer player in BasePlayer.activePlayerList)
-                if (player != null)
-                    player.ChatMessage(message);
+            Helper.Chat.Broadcast(message);
 
             Puts($"{tips[id]}");
 
