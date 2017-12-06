@@ -319,6 +319,37 @@ namespace Oxide.Plugins
                 Oxide.Core.Interface.Oxide.DataFileSystem.WriteObject(filename, data);
             }
         }
+
+        public class AnchorPosition
+        {
+            public class Anchor
+            {
+                public Vector2 vmin = new Vector2();
+                public Vector2 vmax = new Vector2();
+                public string smin = "0 0";
+                public string smax = "1 1";
+            }
+
+            public static Anchor List(int index, float height = 0.05f, float width = 1f, float spacer = 0.012f, float offsetLeft = 0f)
+            {
+                Vector2 dimension = new Vector2(width - offsetLeft, height);
+                Vector2 origin = new Vector2(offsetLeft, 1f);
+                Vector2 offset = new Vector2(0f, (spacer + dimension.y) * (index + 1));
+                Vector2 min = origin - offset;
+                Vector2 max = min + dimension;
+
+                string smin = $"{min.x} {min.y}";
+                string smax = $"{max.x} {max.y}";
+
+                return new Anchor()
+                {
+                    vmin = min,
+                    vmax = max,
+                    smin = smin,
+                    smax = smax,
+                };
+            }
+        }
         #endregion
 
         #region Functions

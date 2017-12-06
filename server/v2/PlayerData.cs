@@ -98,6 +98,9 @@ namespace Oxide.Plugins
             public Dictionary<string, int> subscriptions = new Dictionary<string, int>();
             public Dictionary<string, int> cooldowns = new Dictionary<string, int>();
 
+            // Settings
+            public bool displayTimedNotifications = true;
+
             public void LoadRewardPoints(Action<int> callback = null)
             {
                 Database.Query(Database.Build("SELECT SUM(points) AS points FROM reward_points WHERE user_id=@0;", id), records =>
@@ -181,6 +184,19 @@ namespace Oxide.Plugins
                     foreach (var record in records)
                         cooldowns.Add(Convert.ToString(record["name"]), Convert.ToInt32(record["expires_at"]));
                 });
+            }
+
+            public void SetSetting(string setting, string value)
+            {
+                switch (setting)
+                {
+                    case "displayTimedNotifications":
+                        displayTimedNotifications = (value == "true");
+                        //Database.NonQuery(Database.Build("UPDATE users SET display_timed_notifications=@0 WHERE id=@1 LIMIT 1;", displayTimedNotifications, id));
+                        break;
+                }
+
+                plug.Puts($"[{id}] Changed setting {setting} to {value}");
             }
         }
         #endregion

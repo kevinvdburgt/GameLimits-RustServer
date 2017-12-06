@@ -14,6 +14,7 @@
 // Requires: Kits
 // Requires: Friends
 // Requires: Cars
+// Requires: Info
 
 using System.Collections.Generic;
 
@@ -49,6 +50,14 @@ namespace Oxide.Plugins
         private void OnPlayerDisconnected(BasePlayer player, string reason)
         {
             Plugins.PlayerData.Unload(player);
+        }
+        #endregion
+
+        #region Classes
+        public static class Data
+        {
+            public static string currentWipe = "16 november";
+            public static string nextWipe = "7 december";
         }
         #endregion
     }
