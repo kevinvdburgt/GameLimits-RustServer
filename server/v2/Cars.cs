@@ -5,6 +5,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Rust;
 
 namespace Oxide.Plugins
 {
@@ -40,6 +41,8 @@ namespace Oxide.Plugins
         private static readonly string prefabExplosion = "assets/prefabs/npc/patrol helicopter/effects/heli_explosion.prefab";
         private static readonly string prefabFridge = "assets/prefabs/deployable/fridge/fridge.deployed.prefab";
 
+        public static int repairType;
+
         #region Oxide Hooks
         private void Init()
         {
@@ -61,6 +64,9 @@ namespace Oxide.Plugins
             foreach (BaseCar car in UnityEngine.Object.FindObjectsOfType<BaseCar>())
                 car.gameObject.AddComponent<CarController>();
 
+            // Find items
+            repairType = ItemManager.itemList.Find(x => x.shortname == "metal.fragments")?.itemid ?? 0;
+
             Puts($"Found {spawnLocations.Count} spawn locations and restored {UnityEngine.Object.FindObjectsOfType<BaseCar>().Length} existing cars");
 
             RespawnCars();
@@ -78,7 +84,6 @@ namespace Oxide.Plugins
 
             Helper.DataStore.Save(trunks, "cartrunks");
         }
-
 
         private void OnPlayerInput(BasePlayer player, InputState input)
         {
@@ -158,6 +163,44 @@ namespace Oxide.Plugins
 
             return null;
         }
+
+        private void OnEntityTakeDamage(BaseCombatEntity entity, HitInfo info)
+        {
+            if (entity == null || info == null)
+                return;
+
+            if (entity.GetComponent<CarController>())
+                entity.GetComponent<CarController>().ManageDamage(info);
+            else if (entity.GetComponent<CarController.InvisibleMount>())
+                NullifyDamage(info);
+            else if (entity.GetComponent<StorageContainer>() && entity.GetParentEntity()?.GetComponent<CarController>())
+                NullifyDamage(info);
+        }
+
+        private void OnHammerHit(BasePlayer player, HitInfo info)
+        {
+            if (player == null || info == null || info.HitEntity == null)
+                return;
+
+            CarController controller = info.HitEntity.GetComponent<CarController>();
+
+            if (controller == null || controller.car == null)
+                return;
+
+            if (controller.car.health < controller.car.MaxHealth())
+            {
+                if (player.inventory.GetAmount(repairType) >= 50)
+                {
+                    player.inventory.Take(null, repairType, 50);
+                    controller.car.Heal(30);
+                    player.Command("note.inv", new object[] { repairType, 50 * -1 });
+
+                    player.ChatMessage($"Car has been repaired for {(int)(controller.car.health / controller.car.MaxHealth() * 100)}%!");
+                }
+                else player.ChatMessage("Car repair costs 10 metal fragments per hit");
+            }
+            else player.ChatMessage("Car has been repaired for 100%!");
+        }
         #endregion
 
         #region Functions
@@ -192,6 +235,14 @@ namespace Oxide.Plugins
             CarController controller = entity.gameObject.AddComponent<CarController>();
 
             return entity;
+        }
+
+        private void NullifyDamage(HitInfo info)
+        {
+            info.damageTypes = new DamageTypeList();
+            info.HitEntity = null;
+            info.HitMaterial = 0;
+            info.PointStart = Vector3.zero;
         }
         #endregion
 
@@ -364,6 +415,31 @@ namespace Oxide.Plugins
                     Destroy(this);
                 });
             }
+
+            public void ManageDamage(HitInfo info)
+            {
+                if (isDying)
+                {
+                    plug.NullifyDamage(info);
+                    return;
+                }
+
+                if (info.damageTypes.GetMajorityDamageType() == DamageType.Bullet)
+                    info.damageTypes.ScaleAll(1000);
+                else
+                    info.damageTypes.ScaleAll(10);
+
+                if (info.damageTypes.Total() >= car.health)
+                {
+                    isDying = true;
+                    plug.NullifyDamage(info);
+                    OnDeath();
+                    return;
+                }
+
+                foreach (BasePlayer p in occupants)
+                    plug.UpdateUI(p, this);
+            }
             #endregion
 
             #region Classes
@@ -441,6 +517,7 @@ namespace Oxide.Plugins
                 public void OnEntityMounted()
                 {
                     controller.occupants.Add(player);
+                    plug.CreateUI(player, controller);
 
                     if (isDriver)
                         controller.Driver = player;
@@ -448,6 +525,7 @@ namespace Oxide.Plugins
 
                 public void OnEntityDismounted()
                 {
+                    plug.DestroyUI(player);
                     controller.occupants.Remove(player);
                     player = null;
                 }
@@ -552,6 +630,54 @@ namespace Oxide.Plugins
                 }
             }
             #endregion
+        }
+        #endregion
+
+        #region UI
+        private void CreateUI(BasePlayer player, CarController controller)
+        {
+            PlayerData.PData pdata = PlayerData.Get(player);
+
+            if (player == null || pdata == null || pdata.displayCarHud == false)
+                return;
+
+            DestroyUI(player);
+
+            // Create the main container
+            CuiElementContainer container = Helper.UI.Container("ui_car", "0 0 0 .5", "0.01 0.06", "0.24 0.09");
+            
+            // Display the container
+            Helper.UI.Add(player, container);
+
+            UpdateUI(player, controller);
+            //CuiElementContainer container2 = Helper.UI.Container("ui_car2", "1 0 0 .99", "0.01 0.02", "0.25 0.05"); // REFERENCE
+            //Helper.UI.Add(player, container2);
+        }
+
+        private void DestroyUI(BasePlayer player)
+        {
+            Helper.UI.Destroy(player, "ui_car");
+            Helper.UI.Destroy(player, "ui_car2");
+        }
+
+        private void UpdateUI(BasePlayer player, CarController controller)
+        {
+            PlayerData.PData pdata = PlayerData.Get(player);
+
+            if (player == null || pdata == null || pdata.displayCarHud == false)
+                return;
+
+            Helper.UI.Destroy(player, "ui_car_container");
+
+            CuiElementContainer container = Helper.UI.Container("ui_car_container", "0 0 0 .5", "0 0.005", "1 0.94", false, "ui_car");
+
+            Helper.UI.Label(ref container, "ui_car_container", "1 1 1 1", "Health", 12, "0.02 0", "1 1", TextAnchor.MiddleLeft);
+
+            // Health
+            Helper.UI.Panel(ref container, "ui_car_container", "0.57 0.21 0.11 1", "0.2 0.25", "0.98 0.75", false, "ui_car_container_hp");
+            Helper.UI.Panel(ref container, "ui_car_container_hp", "0.41 0.5 0.25 1", "0 0", (controller.car.health / controller.car.MaxHealth()) + " 0.92");
+            
+            Helper.UI.Add(player, container);
         }
         #endregion
     }

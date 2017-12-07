@@ -53,6 +53,7 @@ namespace Oxide.Plugins
                 PData pdata = new PData()
                 {
                     id = Convert.ToUInt32(records[0]["id"]),
+                    admin = Convert.ToBoolean(records[0]["is_admin"]),
                 };
 
                 datas.Add(player.userID, pdata);
@@ -60,6 +61,7 @@ namespace Oxide.Plugins
                 pdata.LoadRewardPoints();
                 pdata.LoadSubscriptions();
                 pdata.LoadCooldowns();
+                pdata.LoadSettings();
 
                 plug.Puts($"Player loaded (id: {pdata.id})");
             });
@@ -94,12 +96,14 @@ namespace Oxide.Plugins
         public class PData
         {
             public uint id = 0;
+            public bool admin = false;
             public int rewardPoints = 0;
             public Dictionary<string, int> subscriptions = new Dictionary<string, int>();
             public Dictionary<string, int> cooldowns = new Dictionary<string, int>();
 
             // Settings
             public bool displayTimedNotifications = true;
+            public bool displayCarHud = true;
 
             public void LoadRewardPoints(Action<int> callback = null)
             {
@@ -186,17 +190,62 @@ namespace Oxide.Plugins
                 });
             }
 
-            public void SetSetting(string setting, string value)
+            public void SetSetting(string setting, string data, bool restore = false)
             {
                 switch (setting)
                 {
                     case "displayTimedNotifications":
-                        displayTimedNotifications = (value == "true");
-                        //Database.NonQuery(Database.Build("UPDATE users SET display_timed_notifications=@0 WHERE id=@1 LIMIT 1;", displayTimedNotifications, id));
+                        displayTimedNotifications = (data == "true");
                         break;
+
+                    case "displayCarHud":
+                        displayCarHud = (data == "true");
+                        break;
+
+                    default:
+                        return;
                 }
 
-                plug.Puts($"[{id}] Changed setting {setting} to {value}");
+                if (restore)
+                {
+                    plug.Puts($"Setting restored: {setting} to {data}");
+                    return;
+                }
+
+                Database.Query(Database.Build("SELECT * FROM user_settings WHERE user_id=@0 AND setting=@1 LIMIT 1;", id, setting), records =>
+                {
+                    if (records.Count == 0)
+                    {
+                        Database.NonQuery(Database.Build("INSERT INTO user_settings (user_id, setting, data) VALUES (@0, @1, @2);", id, setting, data));
+                        plug.Puts($"[{id}] Changed setting {setting} to {data} (first time)");
+                    }
+                    else
+                    {
+                        Database.NonQuery(Database.Build("UPDATE user_settings SET data=@0 WHERE user_id=@1 AND setting=@2 LIMIT 1;", data, id, setting));
+                        plug.Puts($"[{id}] Changed setting {setting} to {data}");
+                    }
+                });
+            }
+            public void GetSetting(string setting, string defaultString, Action<string> callback)
+            {
+                Database.Query(Database.Build("SELECT data FROM user_settings WHERE user_id=@0 AND setting=@1 LIMIT 1;", id, setting), records => 
+                {
+                    if (records.Count == 0)
+                    {
+                        callback?.Invoke(defaultString);
+                        return;
+                    }
+
+                    callback?.Invoke(records[0]["data"].ToString());
+                });
+            }
+            public void LoadSettings()
+            {
+                Database.Query(Database.Build("SELECT * FROM user_settings WHERE user_id=@0;", id), records =>
+                {
+                    foreach (var record in records)
+                        SetSetting(Convert.ToString(record["setting"]), Convert.ToString(record["data"]), true);
+                });
             }
         }
         #endregion

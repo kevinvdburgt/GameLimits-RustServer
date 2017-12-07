@@ -29,12 +29,6 @@ namespace Oxide.Plugins
             InitializeKits();
         }
 
-        [ChatCommand("k")]
-        private void OnChatCommandK(BasePlayer player, string command, string[] args)
-        {
-            OnChatCommandKitp(player, command, args);
-        }
-
         [ChatCommand("kit")]
         private void OnChatCommandKitp(BasePlayer player, string command, string[] args)
         {

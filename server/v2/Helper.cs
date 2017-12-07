@@ -353,9 +353,70 @@ namespace Oxide.Plugins
         #endregion
 
         #region Functions
-        public static void ExecuteCommand(BasePlayer player, string command)
+        public static bool ExecuteCommand(BasePlayer player, string command)
         {
+            string[] args = command.Split(' ');
 
+            PlayerData.PData pdata = PlayerData.Get(player);
+
+            if (player == null || args.Length == 0 || pdata == null)
+                return false;
+
+            switch (args[0])
+            {
+                // Add subscriptions
+                // syntax: subscription <name> <duration in seconds>
+                case "subscription":
+                    if (args.Length != 3)
+                        return false;
+
+                    pdata.AddSubscription(Convert.ToString(args[1]), Convert.ToInt32(args[2]));
+                    break;
+
+                // Give item
+                // syntax: give <itemname> [amount] [inventory]
+                case "give":
+                    if (args.Length == 1)
+                        return false;
+
+                    // Parameters
+                    int amount = args.Length == 3 ? Convert.ToInt32(args[2]) : 1;
+                    ItemContainer inventory = player.inventory.containerMain;
+                    if (args.Length == 4 && Convert.ToString(args[3]) == "belt")
+                        inventory = player.inventory.containerBelt;
+                    else if (args.Length == 4 && Convert.ToString(args[3]) == "wear")
+                        inventory = player.inventory.containerWear;
+
+                    ItemDefinition definition = ItemManager.FindItemDefinition(Convert.ToString(args[1]));
+                    if (definition == null)
+                        return false;
+
+                    Item item = ItemManager.CreateByItemID(definition.itemid, amount);
+
+                    if (inventory.itemList.Count >= 24)
+                        item.Drop(player.transform.position, new Vector3(0, 1f, 0));
+                    else
+                        player.inventory.GiveItem(ItemManager.CreateByItemID(definition.itemid, amount), inventory);
+                    break;
+
+                // Call the helicopter to the caller
+                // syntax: helicopter
+                case "helicopter":
+                    BaseHelicopter helicopter = (BaseHelicopter)GameManager.server.CreateEntity("assets/prefabs/npc/patrol helicopter/patrolhelicopter.prefab", new Vector3(), new Quaternion(), true);
+                    if (helicopter == null)
+                        return false;
+
+                    var ai = helicopter?.GetComponent<PatrolHelicopterAI>() ?? null;
+                    if (ai == null)
+                        return false;
+
+                    ai.SetInitialDestination(player.transform.position + new Vector3(0, 25f, 0));
+
+                    helicopter.Spawn();
+                    break;
+            }
+
+            return true;
         }
 
         public static int Timestamp()
