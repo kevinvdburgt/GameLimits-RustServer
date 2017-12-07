@@ -132,6 +132,7 @@ namespace Oxide.Plugins
         [ChatCommand("tpa")]
         private void OnChatCommandTpa(BasePlayer player, string command, string[] args)
         {
+            Notifications.AddTimedNotification(player, "test", "Waiting..", 1337, "0 .9 0 1");
             TeleportRequestAccept(player);
         }
 

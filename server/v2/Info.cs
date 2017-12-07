@@ -232,25 +232,25 @@ namespace Oxide.Plugins
             else
                 Helper.UI.Button(ref row1, "ui_info_settings_1", "0.57 0.21 0.11 1", "No", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications true");
 
-            // Countdown notifications - Teleport
-            if (pdata.displayTimedNotifications)
-            {
-                anchor = Helper.AnchorPosition.List(1, 0.05f, 0.975f, 0.01f, 0.02f);
-                Helper.UI.Panel(ref row1, "ui_info_settings_1", "1 1 1 .01", anchor.smin, anchor.smax);
-                Helper.UI.Label(ref row1, "ui_info_settings_1", "1 1 1 1", "Display countdown notifications (teleport cooldown)", 12, $"{anchor.vmin.x + 0.02f} {anchor.vmin.y}", $"{anchor.vmax.x} {anchor.vmax.y}", UnityEngine.TextAnchor.MiddleLeft);
-                if (true)
-                    Helper.UI.Button(ref row1, "ui_info_settings_1", "0.41 0.5 0.25 1", "Yes", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications false");
-                else
-                    Helper.UI.Button(ref row1, "ui_info_settings_1", "0.57 0.21 0.11 1", "No", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications true");
+            //// Countdown notifications - Teleport
+            //if (pdata.displayTimedNotifications)
+            //{
+            //    anchor = Helper.AnchorPosition.List(1, 0.05f, 0.975f, 0.01f, 0.02f);
+            //    Helper.UI.Panel(ref row1, "ui_info_settings_1", "1 1 1 .01", anchor.smin, anchor.smax);
+            //    Helper.UI.Label(ref row1, "ui_info_settings_1", "1 1 1 1", "Display countdown notifications (teleport cooldown)", 12, $"{anchor.vmin.x + 0.02f} {anchor.vmin.y}", $"{anchor.vmax.x} {anchor.vmax.y}", UnityEngine.TextAnchor.MiddleLeft);
+            //    if (true)
+            //        Helper.UI.Button(ref row1, "ui_info_settings_1", "0.41 0.5 0.25 1", "Yes", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications false");
+            //    else
+            //        Helper.UI.Button(ref row1, "ui_info_settings_1", "0.57 0.21 0.11 1", "No", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications true");
 
-                anchor = Helper.AnchorPosition.List(2, 0.05f, 0.975f, 0.01f, 0.02f);
-                Helper.UI.Panel(ref row1, "ui_info_settings_1", "1 1 1 .01", anchor.smin, anchor.smax);
-                Helper.UI.Label(ref row1, "ui_info_settings_1", "1 1 1 1", "Display countdown notifications (kit cooldown)", 12, $"{anchor.vmin.x + 0.02f} {anchor.vmin.y}", $"{anchor.vmax.x} {anchor.vmax.y}", UnityEngine.TextAnchor.MiddleLeft);
-                if (false)
-                    Helper.UI.Button(ref row1, "ui_info_settings_1", "0.41 0.5 0.25 1", "Yes", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications false");
-                else
-                    Helper.UI.Button(ref row1, "ui_info_settings_1", "0.57 0.21 0.11 1", "No", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications true");
-            }
+            //    anchor = Helper.AnchorPosition.List(2, 0.05f, 0.975f, 0.01f, 0.02f);
+            //    Helper.UI.Panel(ref row1, "ui_info_settings_1", "1 1 1 .01", anchor.smin, anchor.smax);
+            //    Helper.UI.Label(ref row1, "ui_info_settings_1", "1 1 1 1", "Display countdown notifications (kit cooldown)", 12, $"{anchor.vmin.x + 0.02f} {anchor.vmin.y}", $"{anchor.vmax.x} {anchor.vmax.y}", UnityEngine.TextAnchor.MiddleLeft);
+            //    if (false)
+            //        Helper.UI.Button(ref row1, "ui_info_settings_1", "0.41 0.5 0.25 1", "Yes", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications false");
+            //    else
+            //        Helper.UI.Button(ref row1, "ui_info_settings_1", "0.57 0.21 0.11 1", "No", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications true");
+            //}
 
             Helper.UI.Add(player, row1);
             Helper.UI.Add(player, row2);

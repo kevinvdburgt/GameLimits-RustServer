@@ -86,21 +86,27 @@ namespace Oxide.Plugins
             {
                 if (!force)
                     Helper.UI.Destroy(player, "ui_notifications_times");
-                
-                // Render notifications
-                CuiElementContainer container = Helper.UI.Container("ui_notifications_times", "0 0 0 0", "0.85 0.4", "0.990 0.85", false, "Hud");
 
-                int index = 0;
+                PlayerData.PData pdata = PlayerData.Get(player);
+
                 int currentTimestamp = Helper.Timestamp();
-                
-                foreach (var notification in timedNotifications[player])
-                    BuildNotificationBlock(ref container, index++, notification.Value);
+
+                if (pdata.displayTimedNotifications)
+                {
+                    // Render notifications
+                    CuiElementContainer container = Helper.UI.Container("ui_notifications_times", "0 0 0 0", "0.85 0.4", "0.990 0.85", false, "Hud");
+
+                    int index = 0;
+
+                    foreach (var notification in timedNotifications[player])
+                        BuildNotificationBlock(ref container, index++, notification.Value);
+
+                    Helper.UI.Add(player, container);
+                }
 
                 // Remove expired timers
                 foreach (var notification in timedNotifications[player].Where(k => k.Value.expires <= currentTimestamp).ToList())
                     timedNotifications[player].Remove(notification.Key);
-
-                Helper.UI.Add(player, container);
             }
         }
 
