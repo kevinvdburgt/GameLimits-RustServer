@@ -12,6 +12,7 @@ import routes from './app/routes';
 import './config/passport';
 import './services/playersync';
 import './services/slack';
+import './services/telegram';
 
 const app = express();
 const sessionFileStore = SessionFileStore(session);

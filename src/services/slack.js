@@ -38,10 +38,7 @@ rtm.on(RTM_EVENTS.MESSAGE, (message) => {
   decode(message.text).split('\n').forEach((line) => {
     console.log(line.substring(0, 1));
 
-    if (line.substring(0, 2) === '>>') {
-      exec(`${line.substring(2)}`);
-      console.log(`[RCON:OUT]: ${line.substring(2)}`);
-    } else if (line.substring(0, 1) === '>') {
+    if (line.substring(0, 1) === '>') {
       exec(`chat.admin ${line.substring(1)}`);
       console.log(`[Chat]: ${line.substring(1)}`);
     }
@@ -59,10 +56,6 @@ rcon.on('message', (message) => {
       } else {
         rtm.sendMessage('>' + msg, slack.channel.id);        
       }
-    }
-  } else if(message.message.substring(0, 1) === '[') {
-    if (slack.channel && slack.ready) {
-      rtm.sendMessage(`\`\`\`${message.message}\`\`\``, slack.channel.id);
     }
   }
 });
