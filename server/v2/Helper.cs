@@ -393,6 +393,15 @@ namespace Oxide.Plugins
 
             return players;
         }
+
+        public static BasePlayer FindPlayerById(ulong id)
+        {
+            foreach (BasePlayer player in BasePlayer.activePlayerList)
+                if (player != null && player.userID == id)
+                    return player;
+
+            return null;
+        }
         #endregion
     }
 }
