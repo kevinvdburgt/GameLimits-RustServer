@@ -19,6 +19,7 @@
 // Requires: RaidBlock
 // Requires: RaidAlert
 // Requires: KillFeed
+// Requires: Admin
 
 using System.Collections.Generic;
 

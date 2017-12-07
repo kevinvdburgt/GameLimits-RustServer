@@ -53,6 +53,7 @@ namespace Oxide.Plugins
                 PData pdata = new PData()
                 {
                     id = Convert.ToUInt32(records[0]["id"]),
+                    admin = Convert.ToBoolean(records[0]["is_admin"]),
                 };
 
                 datas.Add(player.userID, pdata);
@@ -95,6 +96,7 @@ namespace Oxide.Plugins
         public class PData
         {
             public uint id = 0;
+            public bool admin = false;
             public int rewardPoints = 0;
             public Dictionary<string, int> subscriptions = new Dictionary<string, int>();
             public Dictionary<string, int> cooldowns = new Dictionary<string, int>();

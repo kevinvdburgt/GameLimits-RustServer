@@ -24,11 +24,16 @@ namespace Oxide.Plugins
                 return false;
             }
 
+            // Player tags
+            string tags = "";
+            if (Helper.HasMinimumVipRank(pdata, "vip"))
+                tags += "<color=#88B71B>[VIP]</color> ";
+
             // Compose the player message
             string message = string.Join(" ", args.Args);
 
             // Broadcast to ingame chat
-            BroadcastChat($"<color=#32AADD>{player.displayName}</color> {message}", player.userID);
+            BroadcastChat($"{tags}<color=#32AADD>{player.displayName}</color> {message}", player.userID);
 
             // Broadcast to server console
             Puts($"[ingame] [{player.displayName}] {message}");
