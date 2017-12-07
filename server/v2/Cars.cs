@@ -636,7 +636,9 @@ namespace Oxide.Plugins
         #region UI
         private void CreateUI(BasePlayer player, CarController controller)
         {
-            if (player == null)
+            PlayerData.PData pdata = PlayerData.Get(player);
+
+            if (player == null || pdata == null || pdata.displayCarHud == false)
                 return;
 
             DestroyUI(player);
@@ -660,6 +662,11 @@ namespace Oxide.Plugins
 
         private void UpdateUI(BasePlayer player, CarController controller)
         {
+            PlayerData.PData pdata = PlayerData.Get(player);
+
+            if (player == null || pdata == null || pdata.displayCarHud == false)
+                return;
+
             Helper.UI.Destroy(player, "ui_car_container");
 
             CuiElementContainer container = Helper.UI.Container("ui_car_container", "0 0 0 .5", "0 0.005", "1 0.94", false, "ui_car");

@@ -10,6 +10,12 @@ namespace Oxide.Plugins
     public class Info : RustPlugin
     {
         #region Oxide Hooks
+        [ChatCommand("settings")]
+        private void OnChatCommantSettings(BasePlayer player, string command, string[] args)
+        {
+            CreateUI(player, "settings");
+        }
+
         [ChatCommand("i")]
         private void OnChatCommantI(BasePlayer player, string command, string[] args)
         {
@@ -53,6 +59,21 @@ namespace Oxide.Plugins
                     break;
             }
         }
+
+        void OnPlayerInit(BasePlayer player)
+        {
+            if (player == null)
+                return;
+
+            if (player.HasPlayerFlag(BasePlayer.PlayerFlags.ReceivingSnapshot))
+            {
+                timer.Once(2f, () => OnPlayerInit(player));
+                return;
+            }
+
+            CreateUI(player);
+        }
+
         #endregion
 
         #region UI
@@ -231,6 +252,16 @@ namespace Oxide.Plugins
                 Helper.UI.Button(ref row1, "ui_info_settings_1", "0.41 0.5 0.25 1", "Yes", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications false");
             else
                 Helper.UI.Button(ref row1, "ui_info_settings_1", "0.57 0.21 0.11 1", "No", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayTimedNotifications true");
+
+            // Display car hud
+            anchor = Helper.AnchorPosition.List(0, 0.05f, 0.975f, 0.01f, 0.02f);
+            Helper.UI.Panel(ref row2, "ui_info_settings_2", "1 1 1 .01", anchor.smin, anchor.smax);
+            Helper.UI.Label(ref row2, "ui_info_settings_2", "1 1 1 1", "Display car interface when in a car", 12, $"{anchor.vmin.x + 0.02f} {anchor.vmin.y}", $"{anchor.vmax.x} {anchor.vmax.y}", UnityEngine.TextAnchor.MiddleLeft);
+            if (pdata.displayCarHud)
+                Helper.UI.Button(ref row2, "ui_info_settings_2", "0.41 0.5 0.25 1", "Yes", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayCarHud false");
+            else
+                Helper.UI.Button(ref row2, "ui_info_settings_2", "0.57 0.21 0.11 1", "No", 12, $"{anchor.vmin.x + 0.8f} {anchor.vmin.y + 0.01}", $"{anchor.vmax.x - 0.02} {anchor.vmax.y - 0.01}", $"cinfo settings displayCarHud true");
+
 
             //// Countdown notifications - Teleport
             //if (pdata.displayTimedNotifications)

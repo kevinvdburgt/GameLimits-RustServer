@@ -103,6 +103,7 @@ namespace Oxide.Plugins
 
             // Settings
             public bool displayTimedNotifications = true;
+            public bool displayCarHud = true;
 
             public void LoadRewardPoints(Action<int> callback = null)
             {
@@ -196,6 +197,13 @@ namespace Oxide.Plugins
                     case "displayTimedNotifications":
                         displayTimedNotifications = (data == "true");
                         break;
+
+                    case "displayCarHud":
+                        displayCarHud = (data == "true");
+                        break;
+
+                    default:
+                        return;
                 }
 
                 if (restore)
