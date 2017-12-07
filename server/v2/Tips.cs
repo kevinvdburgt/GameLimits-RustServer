@@ -21,12 +21,12 @@ namespace Oxide.Plugins
             "Every hour you are rewarded 2 Reward Points or RP, which you can spend in the Shop.",
             "Did you know you can store stuff in your car's trunk?",
             "Cars spawn every few hours at monuments.",
-            //"To teleport, use /tpr (name) to request a teleport and /tpa to accept one.",
+            "To teleport, use /tpr (name) to request a teleport and /tpa to accept one.",
             "You can add friends! Friends have access to your locked doors, chests and TC's and won't be shot by autoturrets.",
             "This server wipes every two weeks.",
             "Have you seen our website yet? Visit https://rust.gamelimits.com!",
             "Did you we have a Discord server? Go to https://rust.gamelimits.com/discord",
-            "Did you know we have a Steam Group? Go to https://rust.gamelimits.com/rust",
+            "Did you know we have a Steam Group? Go to https://rust.gamelimits.com/steam",
             "You can access your friendlist with /friend or /f."
         };
 

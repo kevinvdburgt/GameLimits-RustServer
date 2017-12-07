@@ -18,6 +18,7 @@
 // Requires: CombatBlock
 // Requires: RaidBlock
 // Requires: RaidAlert
+// Requires: KillFeed
 
 using System.Collections.Generic;
 

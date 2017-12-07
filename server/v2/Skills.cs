@@ -22,6 +22,12 @@ namespace Oxide.Plugins
                 CreateUI(player);
                 LoadPlayer(player);
             }
+
+            timer.Every(60f * 2, () => 
+            {
+                foreach (BasePlayer player in BasePlayer.activePlayerList)
+                    SavePlayer(player);
+            });
         }
 
         private void Unload()
@@ -206,7 +212,7 @@ namespace Oxide.Plugins
 
             ulong id = player.userID;
 
-            SavePlayer(player);
+            // SavePlayer(player);
 
             skills.Remove(id);
         }
