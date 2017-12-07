@@ -15,6 +15,9 @@
 // Requires: Friends
 // Requires: Cars
 // Requires: Info
+// Requires: CombatBlock
+// Requires: RaidBlock
+// Requires: RaidAlert
 
 using System.Collections.Generic;
 
