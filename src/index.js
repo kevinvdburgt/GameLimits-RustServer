@@ -10,9 +10,9 @@ import database from './database/database';
 import config from '../config';
 import routes from './app/routes';
 import './config/passport';
-import './services/playersync';
-import './services/slack';
-import './services/telegram';
+// import './services/playersync';
+// import './services/slack';
+import telegram from './services/telegram';
 
 const app = express();
 const sessionFileStore = SessionFileStore(session);
@@ -71,6 +71,7 @@ app.listen(config.port, () => {
   console.log(`Started listening on port ${config.port}`);
 });
 
+// telegram.broadcast('Hi There!\n\nOur rust server has been updated to the latest devblog and is available again!');
 
 // import 'babel-polyfill';
 // import express from 'express';

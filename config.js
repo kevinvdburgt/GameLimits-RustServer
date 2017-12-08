@@ -30,6 +30,11 @@ module.exports = {
     channel: 'glr',
   },
 
+  // Telegram
+  telegram: {
+    token: '466124060:AAGU5hO8iKqgUabqBCPCr0yr3TzrSbYsLt8',
+  },
+
   // PayPal
   paypal: {
     live: true,

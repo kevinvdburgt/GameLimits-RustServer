@@ -19,7 +19,7 @@ const sync = async () => {
 
       const data = JSON.parse(body);
 
-      if (player.avarat !== data.response.players[0].avatarfull || utf8.encode(player.display_name) !== utf8(data.response.players[0].personname)) {
+      if (player.avatar !== data.response.players[0].avatarfull || utf8.encode(player.display_name) !== utf8(data.response.players[0].personname)) {
         await database
           .table('users')
           .where('id', player.id)
@@ -34,39 +34,8 @@ const sync = async () => {
   });
 };
 
-
-// import request from 'request';
-// import utf8 from 'utf8';
-// import config from '../../config';
-// import database from '../database/database';
-
-// const sync = async () => {
-//   const players = await database
-//     .table('users');
-
-//   players.forEach((player) => {
-//     request(`http://api.steampowered.com/ISteamUser/GetPlayerSummaries/v0002/?key=${config.auth.apiKey}&steamids=${player.steam_id}`, async (err, res, body) => {
-//       if (err || res.statusCode != 200) {
-//         console.error(err);
-//         return;
-//       }
-
-//       const data = JSON.parse(body);
-
-//       if (player.avatar !== data.response.players[0].avatarfull || utf8.encode(player.display_name) !== data.response.players[0].personaname) {
-//         await database
-//           .table('users')
-//           .where('id', player.id)
-//           .update({
-//             avatar: data.response.players[0].avatarfull,
-//             display_name: utf8.encode(data.response.players[0].personaname),
-//           });
-//       }
-//     });
-    
-//   });
-// };
-
+// Run this script on startup
 sync();
 
-// setInterval(() => sync(), 1000 * 60 * 30);
+// Run this script every hour
+setInterval(() => sync(), 1000 * 3600);
