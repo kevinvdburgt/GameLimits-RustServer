@@ -45,6 +45,7 @@
     "steam-api": "^1.1.3",
     "telegraf": "^3.17.1",
     "utf8": "^3.0.0",
+    "webrcon": "^0.2.3",
     "webrconjs": "^1.0.0"
   },
   "devDependencies": {

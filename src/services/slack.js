@@ -1,63 +1,112 @@
 import { RtmClient, CLIENT_EVENTS, RTM_EVENTS } from '@slack/client';
 import decode from 'decode-html';
 import { rcon, exec } from './rcon';
+import telegram from './telegram';
 import config from '../../config';
 
+// Create the slack rtm api connection
 const rtm = new RtmClient(config.slack.token);
 
-const slack = {
-  ready: true,
-  channel: null,
+// Slack cached config data
+const slackData = {
+  ready: false,
+  channel: {
+    chat: null,
+    rcon: null,
+  },
 };
 
+// Fire the event when the RTM has been autorized
 rtm.on(CLIENT_EVENTS.RTM.AUTHENTICATED, (data) => {
-  slack.channel = data.channels.find((channel) => {
-    return channel.name === config.slack.channel;
-  });
+  slackData.channel.chat = data.channels.find((channel) => channel.name === config.slack.channel.chat);
+  slackData.channel.rcon = data.channels.find((channel) => channel.name === config.slack.channel.rcon);
 
-  if (!slack.channel) {
-    slack.channel = data.groups.find((group) => {
-      return group.name === config.slack.channel;
-    });
+  if (!slackData.channel.chat) {
+    slackData.channel.chat = data.groups.find((channel) => channel.name === config.slack.channel.chat);
   }
 
-  if (!slack.channel) {
-    console.error('Couldnt find the slack channel..');
+  if (!slackData.channel.rcon) {
+    slackData.channel.rcon = data.groups.find((channel) => channel.name === config.slack.channel.rcon);
+  }
+
+  if (slackData.channel.chat && slackData.channel.rcon) {
+    slackData.ready = true;
+  } else {
+    console.error('Could not find the slack channels:', slackData.channel);
   }
 });
 
-rtm.on(CLIENT_EVENTS.RTM.RTM_CONNECTION_OPENED, () => {
-  slack.ready = true;
-});
-
+// Handle incomming messages
 rtm.on(RTM_EVENTS.MESSAGE, (message) => {
-  if (!message.text || message.channel !== slack.channel.id || message.type !== 'message') {
+  if (!message.text || message.type !== 'message' || (message.channel !== slackData.channel.chat.id && message.channel !== slackData.channel.rcon.id)) {
     return;
   }
 
   decode(message.text).split('\n').forEach((line) => {
-    console.log(line.substring(0, 1));
-
-    if (line.substring(0, 1) === '>') {
+    if (message.channel === slackData.channel.chat.id && line.substring(0, 1) === '>') {
       exec(`chat.admin ${line.substring(1)}`);
-      console.log(`[Chat]: ${line.substring(1)}`);
+      console.log(`Admin chat: ${line.substring(1)}`);
+    } else if (message.channel === slackData.channel.rcon.id && line.substring(0, 2) === '>>') {
+      // Service command
+      const params = line.substring(2).split(' ');
+      let uid, message;
+      switch (params.shift()) {
+        case "telegram":
+          uid = params.shift();
+          message = params.join(' ');
+
+          if (!uid || message.length === 0) {
+            return;
+          }
+
+          telegram.send(uid, message);
+          break;
+
+        case "telegram-broadcast":
+          message = params.join(' ');
+
+          if (message.length === 0) {
+            return;
+          }
+
+          telegram.broadcast(message);
+          break;
+
+        case "telegram-admin":
+          message = params.join(' ');
+
+          if (message.length === 0) {
+            return;
+          }
+
+          telegram.broadcastAdmin(message);
+          break;
+      }
+    } else if (message.channel === slackData.channel.rcon.id && line.substring(0, 1) === '>') {
+      // Server command
+      exec(line.substring(1));
+      console.log(`Admin rcon: ${line.substring(1)}`);
     }
   });
 });
 
-rcon.on('message', (message) => {
-  console.log(`[RCON:IN]: ${message.message}`)
-  if (message.message.substring(0, 6) === '[Chat]') {
-    const msg = message.message.substring(7);
+// Handle incomming rcon messages
+rcon.on('message', (ctx) => {
+  console.log(`Rcon Data: ${ctx.message}`);
 
-    if (slack.channel && slack.ready) {
-      if (msg.toLowerCase().includes('admin') || msg.toLowerCase().includes('report') || msg.toLowerCase().includes('bug')) {
-        rtm.sendMessage('<@kevin>\n>' + msg, slack.channel.id);
-      } else {
-        rtm.sendMessage('>' + msg, slack.channel.id);        
-      }
+  // Send chat related data to the chat channel
+  if (ctx.message.substring(0, 6) === '[Chat]' && ctx.message.substring(0, 21) !== '[Chat] [rcon] [admin]') {
+    const message = ctx.message.substring(7);
+    if (slackData.ready) {
+      rtm.sendMessage(`>${message}`, slackData.channel.chat.id);
     }
+  }
+
+  // Send all data to the rcon channel
+  if (slackData.ready) {
+    rtm.sendMessage(`\`\`\`${ctx.message}\`\`\``, slackData.channel.rcon.id);
   }
 });
 
+// Start the slack connection
 rtm.start();

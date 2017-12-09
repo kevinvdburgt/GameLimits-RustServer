@@ -1,5 +1,6 @@
 import telegram from './services/telegram';
 
+telegram.send('76561198176419121', 'Whee');
 
 
 // import './services/rcon';

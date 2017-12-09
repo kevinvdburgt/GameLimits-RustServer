@@ -27,7 +27,10 @@ module.exports = {
   // Slack
   slack: {
     token: 'xoxb-4368424119-f5tqnFIhqFkOo6s2eb9K6xwZ',
-    channel: 'glr',
+    channel: {
+      chat: 'glr',
+      rcon: 'glr-rcon',
+    },
   },
 
   // Telegram
