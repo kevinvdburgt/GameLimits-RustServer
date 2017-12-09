@@ -60,9 +60,15 @@ namespace Oxide.Plugins
                 return;
             }
 
-            if (entity.OwnerID != player.userID/* && !HasFriend(entity.OwnerID, player.userID)*/)
+            if (entity.OwnerID != player.userID && !Friends.HasFriend(entity.OwnerID, player.userID))
             {
                 player.ChatMessage($"<color=#d00>Error</color> you are not the owner of this entity.");
+                return;
+            }
+
+            if (Raid.IsRaidBlocked(player) != null)
+            {
+                player.ChatMessage($"<color=#d00>Error</color> you are in a raidblocked zone.");
                 return;
             }
 

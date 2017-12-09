@@ -15,6 +15,13 @@ namespace Oxide.Plugins
 
     public class Helper : RustPlugin
     {
+        static Helper plug;
+
+        void Init()
+        {
+            plug = this;
+        }
+
         #region Classes
         public static class UI
         {
@@ -348,6 +355,71 @@ namespace Oxide.Plugins
                     smin = smin,
                     smax = smax,
                 };
+            }
+        }
+
+        public static class ToolCupboard
+        {
+            public static List<BuildingPrivlidge> FindCupboards(Vector3 position, float radius = 0f)
+            {
+                List<BuildingPrivlidge> toolCupboardList = new List<BuildingPrivlidge>();
+
+                /*foreach (BuildingPrivlidge tc in UnityEngine.Object.FindObjectsOfType<BuildingPrivlidge>())
+                {
+                    plug.Puts($"[FTC] - Building ID: {tc.GetBuilding().ID}");
+
+                    OBB obb = tc.GetBuilding().GetDominatingBuildingPrivilege().WorldSpaceBounds();
+
+                    plug.Puts($"[FTC]   OBB: {obb.ToBounds().}");
+
+                    toolCupboardList.Add(tc);
+
+                    //toolCupboard.GetParentEntity();
+
+                    //plug.Puts($"TC MATCH 1 [{(toolCupboard.GetParentEntity().WorldSpaceBounds().Contains(position) ? "y" : "n")}] [{(toolCupboard.GetParentEntity().bounds.Contains(position) ? "y" : "n")}]");
+                    //plug.Puts($"TC MATCH 2 [{(toolCupboard.GetEntity().WorldSpaceBounds().Contains(position) ? "y" : "n")}] [{(toolCupboard.GetEntity().bounds.Contains(position) ? "y" : "n")}]");
+
+                    //foreach (var obj in toolCupboard.authorizedPlayers)
+                    //    plug.Puts($" - {obj.username} [{obj.userid}]");
+
+                    //if (toolCupboard.bounds.Contains(position))
+                    //    toolCupboardList.Add(toolCupboard);
+                }
+
+                plug.Puts($"[FTC] Total: {toolCupboardList.Count}");*/
+                        
+                return toolCupboardList;
+            }
+        }
+
+        public static class ModifiedRust
+        {
+            // Code stolen from Assembly-CSharp.dll -> BasePlayer.cs
+            public static BuildingPrivlidge GetBuildingPrivilege(OBB obb)
+            {
+                BuildingBlock buildingBlock1 = (BuildingBlock)null;
+                BuildingPrivlidge buildingPrivlidge = (BuildingPrivlidge)null;
+                System.Collections.Generic.List<BuildingBlock> list = Facepunch.Pool.GetList<BuildingBlock>();
+                Vis.Entities<BuildingBlock>(obb.position, 16f + obb.extents.magnitude, list, 2097152, QueryTriggerInteraction.Collide);
+                for (int index = 0; index < list.Count; ++index)
+                {
+                    BuildingBlock buildingBlock2 = list[index];
+                    if (buildingBlock2.IsOlderThan((BaseEntity)buildingBlock1) && (double)obb.Distance(buildingBlock2.WorldSpaceBounds()) <= 16.0)
+                    {
+                        BuildingManager.Building building = buildingBlock2.GetBuilding();
+                        if (building != null)
+                        {
+                            BuildingPrivlidge buildingPrivilege = building.GetDominatingBuildingPrivilege();
+                            if (!((UnityEngine.Object)buildingPrivilege == (UnityEngine.Object)null))
+                            {
+                                buildingBlock1 = buildingBlock2;
+                                buildingPrivlidge = buildingPrivilege;
+                            }
+                        }
+                    }
+                }
+                Facepunch.Pool.FreeList<BuildingBlock>(ref list);
+                return buildingPrivlidge;
             }
         }
         #endregion

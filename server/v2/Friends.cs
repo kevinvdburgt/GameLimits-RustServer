@@ -267,12 +267,11 @@ namespace Oxide.Plugins
 
             if (HasFriend(@lock.GetParentEntity().OwnerID, player.userID))
             {
-                CodeLock codeLock = (CodeLock)@lock;
-                List<ulong> whitelisted = (List<ulong>)codeLock.whitelistPlayers;
-                if (whitelisted.Contains(player.userID))
-                    whitelisted.Add(player.userID);
+                var codeLock = (CodeLock)@lock;
+                var whitelistPlayers = (List<ulong>)codeLock.whitelistPlayers;
+                if (!whitelistPlayers.Contains(player.userID))
+                    whitelistPlayers.Add(player.userID);
             }
-
             return null;
         }
         #endregion

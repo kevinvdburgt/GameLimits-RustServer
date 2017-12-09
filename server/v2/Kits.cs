@@ -123,7 +123,7 @@ namespace Oxide.Plugins
             if (kit == "starter")
                 return true;
 
-            if (Helper.HasMinimumVipRank(pdata, "vip_pro") || pdata.HasSubscription($"vip_{kit}"))
+            if (Helper.HasMinimumVipRank(pdata, "vip_pro") || pdata.HasSubscription($"kit_{kit}"))
                 return true;
 
             return false;

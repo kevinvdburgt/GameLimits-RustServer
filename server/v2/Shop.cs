@@ -271,7 +271,7 @@ namespace Oxide.Plugins
 
             Helper.UI.Panel(ref container, "ui_shop_items", "1 1 1 0.02", $"{min.x} {min.y}", $"{max.x} {max.y}");
             Helper.UI.Label(ref container, "ui_shop_items", "1 1 1 1", item.Value.name, 11, $"{min.x + 0.012} {min.y + 0.026}", $"{max.x} {max.y}", TextAnchor.MiddleLeft);
-            Helper.UI.Label(ref container, "ui_shop_items", "0.7 0.7 0.7 1", item.Value.name, 11, $"{min.x + 0.012} {min.y - 0.026}", $"{max.x} {max.y}", TextAnchor.MiddleLeft);
+            Helper.UI.Label(ref container, "ui_shop_items", "0.7 0.7 0.7 1", item.Value.description, 11, $"{min.x + 0.012} {min.y - 0.026}", $"{max.x} {max.y}", TextAnchor.MiddleLeft);
             Helper.UI.Button(ref container, "ui_shop_items", "0.12 0.38 0.57 1", $"Costs: {item.Value.price} RP", 12, $"{min.x + 0.9} {min.y + 0.015}", $"{max.x - 0.01} {max.y - 0.015}", $"shop buy {item.Key}");
         }
 

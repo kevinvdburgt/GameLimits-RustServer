@@ -191,11 +191,13 @@ namespace Oxide.Plugins
             {
                 if (player.inventory.GetAmount(repairType) >= 50)
                 {
+                    int old = (int)(controller.car.health / controller.car.MaxHealth() * 100);
+
                     player.inventory.Take(null, repairType, 50);
-                    controller.car.Heal(30);
+                    controller.car.Heal(10);
                     player.Command("note.inv", new object[] { repairType, 50 * -1 });
 
-                    player.ChatMessage($"Car has been repaired for {(int)(controller.car.health / controller.car.MaxHealth() * 100)}%!");
+                    player.ChatMessage($"Car has been repaired from {old}% to {(int)(controller.car.health / controller.car.MaxHealth() * 100)}%!");
                 }
                 else player.ChatMessage("Car repair costs 10 metal fragments per hit");
             }
@@ -223,7 +225,7 @@ namespace Oxide.Plugins
                 Puts($"Spawned new car at {location.x}, {location.y}, {location.z}");
             }
 
-            timer.In(10f, () => RespawnCars());
+            timer.In(60f * 60f * 6, () => RespawnCars());
         }
 
         private BaseEntity SpawnCar(Vector3 position)
@@ -332,7 +334,7 @@ namespace Oxide.Plugins
 
                 container.panelName = "generic";
                 container.isLockable = false;
-                container.displayHealth = false;
+                //container.displayHealth = false;
                 container.pickup.enabled = false;
                 container.onlyAcceptCategory = ItemCategory.All;
 
@@ -407,6 +409,11 @@ namespace Oxide.Plugins
 
                 Effect.server.Run(prefabExplosion, transform.position);
 
+                if (container.inventory.itemList.Count > 0)
+                {
+                    DropUtil.DropItems(container.inventory, car.transform.position + new Vector3(0f, 2f, 0f));
+                }
+
                 plug.NextTick(() =>
                 {
                     if (car != null && !car.IsDestroyed)
@@ -426,6 +433,8 @@ namespace Oxide.Plugins
 
                 if (info.damageTypes.GetMajorityDamageType() == DamageType.Bullet)
                     info.damageTypes.ScaleAll(1000);
+                else if (info.damageTypes.GetMajorityDamageType() == DamageType.Explosion)
+                    info.damageTypes.ScaleAll(4);
                 else
                     info.damageTypes.ScaleAll(10);
 

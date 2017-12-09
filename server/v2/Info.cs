@@ -200,8 +200,8 @@ namespace Oxide.Plugins
                 case "rules":
                     text = $"We don't have many rules on this server, but we do ask you not to:\n" +
                         $"\n" +
-                        $" - Spam in the char;\n" +
-                        $" - Advertise any goods, services, other resources, media or events not releated to the game;\n" +
+                        $" - Spam in the chat;\n" +
+                        $" - Advertise any goods, services, other resources, media or events not related to the game;\n" +
                         $" - Hack, cheat or script;\n" +
                         $" - Use glitches to get an unfair advantage.\n" +
                         $"\n" +

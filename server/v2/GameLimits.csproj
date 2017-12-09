@@ -33,16 +33,23 @@
     <OutputPath>bin\Script\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="Admin.cs" />
+    <Compile Include="Cars.cs" />
     <Compile Include="Chat.cs" />
+    <Compile Include="CombatBlock.cs" />
     <Compile Include="Core.cs" />
     <Compile Include="Database.cs" />
     <Compile Include="Friends.cs" />
     <Compile Include="Helper.cs" />
+    <Compile Include="Info.cs" />
+    <Compile Include="KillFeed.cs" />
     <Compile Include="Kits.cs" />
     <Compile Include="Notifications.cs" />
     <Compile Include="PlayerData.cs" />
     <Compile Include="Playtime.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="RaidAlert.cs" />
+    <Compile Include="RaidBlock.cs" />
     <Compile Include="RemoveTool.cs" />
     <Compile Include="Shop.cs" />
     <Compile Include="Skills.cs" />

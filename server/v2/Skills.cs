@@ -77,6 +77,8 @@ namespace Oxide.Plugins
             if (player == null || !skills.ContainsKey(player.userID) || player.IsSleeping())
                 return;
 
+            DestroyUI(player);
+
             // The XP Penalty that will be applied to all skills
             long xpPenalty = 200;
 
@@ -170,7 +172,7 @@ namespace Oxide.Plugins
 
                 skills.Add(player.userID, pskill);
 
-                Puts(info.TrimEnd('\n'));
+                // Puts(info.TrimEnd('\n'));
 
                 CreateUI(player);
             });
@@ -199,8 +201,6 @@ namespace Oxide.Plugins
                             skills[player.userID].GetXp(skill.code),
                             pdata.id,
                             skill.code));
-
-                    Puts("Skill saved: " + skill.name);
                 });
             }
         }

@@ -256,6 +256,8 @@ namespace Oxide.Plugins
 
         private string CanTeleportFrom(BasePlayer player)
         {
+            if (Raid.IsRaidBlocked(player) != null)
+                return "raid block";
             if (!player.IsAlive())
                 return "dead";
             if (player.IsWounded())
@@ -294,6 +296,8 @@ namespace Oxide.Plugins
                 return "pending request";
             if (checkPendingRequests && FindTPR(target, player) != null)
                 return "pending request";
+            if (Raid.IsRaidBlocked(target) != null)
+                return "raid block";
             if (!target.IsAlive())
                 return "dead";
             if (target.IsWounded())
