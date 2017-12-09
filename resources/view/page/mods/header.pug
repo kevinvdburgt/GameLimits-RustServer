@@ -1,0 +1,51 @@
+section.hero.is-primary.is-bold
+  .hero-body
+    .container
+      h1.title Mods - #{mod}
+
+  .hero-foot
+    .container
+      div.tabs.is-boxed
+        ul
+          li(class=(mod == 'changelog') ? 'is-active' : null)
+            a(href='/mods/changelog') Changelog
+          li(class=(mod == 'info') ? 'is-active' : null)
+            a(href='/mods/info') Info
+          li(class=(mod == 'cars') ? 'is-active' : null)
+            a(href='/mods/cars') Cars
+          li(class=(mod == 'chat') ? 'is-active' : null)
+            a(href='/mods/chat') Chat
+          li(class=(mod == 'combat-raid-block' ? 'is-active' : null))
+            a(href='/mods/combat-raid-block') Combat/Raid Block
+          li(class=(mod == 'friends' ? 'is-active' : null))
+            a(href='/mods/friends') Friends
+          li(class=(mod == 'kits' ? 'is-active' : null))
+            a(href='/mods/kits') Kits
+          li(class=(mod == 'playtime' ? 'is-active' : null))
+            a(href='/mods/playtime') Playtime
+          li(class=(mod == 'raid-alert' ? 'is-active' : null))
+            a(href='/mods/raid-alert') Raid Alert
+          li(class=(mod == 'remove-tool' ? 'is-active' : null))
+            a(href='/mods/remove-tool') Remover Tool
+          //- li
+          //-   a Chat
+          //- li
+          //-   a Friends
+          //- li
+          //-   a Killfeed
+          //- li
+          //-   a Kits
+          //- li
+          //-   a Playtime
+          //- li
+          //-   a Remove
+          //- li
+          //-   a Shop
+          //- li
+          //-   a Spawn
+          //- li
+          //-   a Stacks
+          //- li
+          //-   a Teleport
+          //- li
+          //-   a Tips

@@ -1,5 +1,11 @@
-import './services/rcon';
-import './services/slack';
+import telegram from './services/telegram';
+
+
+
+// import './services/rcon';
+// import './services/slack';
+
+
 
 // import Knex from 'knex';
 // import knexfile from './config/knexfile';

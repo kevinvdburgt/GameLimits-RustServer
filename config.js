@@ -30,6 +30,11 @@ module.exports = {
     channel: 'glr',
   },
 
+  // Telegram
+  telegram: {
+    token: '466124060:AAGU5hO8iKqgUabqBCPCr0yr3TzrSbYsLt8',
+  },
+
   // PayPal
   paypal: {
     live: true,
@@ -46,7 +51,7 @@ module.exports = {
       password: '',
       host: 'localhost',
       port: 3306,
-      charset: 'utf8',
+      charset: 'utf8mb4',
     },
     pool: {
       min: 2,

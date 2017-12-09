@@ -11,7 +11,7 @@ nav.navbar.is-dark(role='navigation' aria-label='main navigation')
     div.navbar-menu.js-navbar
       div.navbar-start
         a.navbar-item(href='/') Home
-        //- a.navbar-item(href='/mods') Mods
+        //- a.navbar-item(href='/mods/changelog') Mods
         //- a.navbar-item(href='/blog') Blog
         a.navbar-item(href='/rules') Rules
         a.navbar-item(href='/chatlog') Chatlog
@@ -36,6 +36,7 @@ nav.navbar.is-dark(role='navigation' aria-label='main navigation')
                 img(src=_user.avatar)
               |&nbsp; #{_user.display_name}
             div.navbar-dropdown
+              a.navbar-item(href='/profile/notifications') Notification Settings
               a.navbar-item(href='/donate') Donate for Reward Points
               a.navbar-item(href='/logout') Logout
 

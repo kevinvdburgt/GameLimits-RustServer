@@ -1,0 +1,22 @@
+extends ../template/default
+  
+block content
+  section.hero.is-primary.is-bold
+    .hero-body
+      .container
+        h1.title Notifications
+
+  section.section
+    div.container
+      div.content
+        h2.subtitle Telegram
+
+        if (token !== null)
+          p We can send you notifications such as raid alerts using our Telegram bot. To connect with this bot open your app, and search for the user <i>@GameLimitsBot</i>. Once you have found the send the following message to authorize your account: <code>/auth #{_user.id}:#{token}</code>
+          p <a href="https://telegram.org" target="_blank">Download Telegram</a>
+        else
+          p You are authorized to our telegram bot. <a href="/profile/notifications?deauthorize=telegram">Click here</a> to deauthorize from our telegram bot.
+        //- each log in logs
+        //-   strong #{log.display_name}:
+        //-   |#{log.message}
+        //-   small (#{log.created_at})
