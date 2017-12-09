@@ -11,7 +11,7 @@ namespace Oxide.Plugins
 
     public class Admin : RustPlugin
     {
-        private List<BasePlayer> adminEnabled = new List<BasePlayer>();
+        private static List<BasePlayer> adminEnabled = new List<BasePlayer>();
 
         #region Oxide Hooks
         [ChatCommand("admin")]
@@ -69,6 +69,11 @@ namespace Oxide.Plugins
             adminEnabled.Remove(player);
 
             DestroyUI(player);
+        }
+
+        public static bool IsAdmin(BasePlayer player)
+        {
+            return adminEnabled.Contains(player);
         }
         #endregion
 

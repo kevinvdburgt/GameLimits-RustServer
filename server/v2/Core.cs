@@ -16,8 +16,7 @@
 // Requires: Cars
 // Requires: Info
 // Requires: CombatBlock
-// Requires: RaidBlock
-// Requires: RaidAlert
+// Requires: Raid
 // Requires: KillFeed
 // Requires: Admin
 
@@ -32,19 +31,22 @@ namespace Oxide.Plugins
     {
         static Core plug;
 
-        #region Dictionaries
-        public static Dictionary<ulong, HashSet<ulong>> playerFriends = new Dictionary<ulong, HashSet<ulong>>();
-        #endregion
-
         #region Oxide Hooks
         private void Init()
         {
             plug = this;
+        }
 
+        private void OnServerInitialized()
+        {
             Puts("Game Limits Core loading..");
 
+            PrintToChat("Game Limits plugins are reloading..");
+
             foreach (BasePlayer player in BasePlayer.activePlayerList)
+            {
                 Plugins.PlayerData.Load(player);
+            }
         }
 
         private void OnPlayerInit(BasePlayer player)
@@ -61,8 +63,8 @@ namespace Oxide.Plugins
         #region Classes
         public static class Data
         {
-            public static string currentWipe = "16 november";
-            public static string nextWipe = "7 december";
+            public static string currentWipe = "7 december";
+            public static string nextWipe = "22 december";
         }
         #endregion
     }

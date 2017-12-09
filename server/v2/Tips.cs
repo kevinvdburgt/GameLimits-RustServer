@@ -27,7 +27,11 @@ namespace Oxide.Plugins
             "Have you seen our website yet? Visit https://rust.gamelimits.com!",
             "Did you we have a Discord server? Go to https://rust.gamelimits.com/discord",
             "Did you know we have a Steam Group? Go to https://rust.gamelimits.com/steam",
-            "You can access your friendlist with /friend or /f."
+            "You can access your friendlist with /friend or /f.",
+
+            "Did you know you can be alerted when you got raided? Add our Telegram bot (@GameLimitsBot) to your chat app.",
+            "Did you know you can be alerted when you got raided? Add our Telegram bot (@GameLimitsBot) to your chat app.",
+            "Did you know you can be alerted when you got raided? Add our Telegram bot (@GameLimitsBot) to your chat app.",
         };
 
         private static List<int> lastTips = new List<int>();

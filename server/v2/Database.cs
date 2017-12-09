@@ -20,6 +20,11 @@ namespace Oxide.Plugins
         private static string MYSQL_PASS = "";
         private static string MYSQL_DB = "project_rust_gl";
 
+        //private static string MYSQL_HOST = "rust.gamelimits.com";
+        //private static string MYSQL_USER = "gamelimits";
+        //private static string MYSQL_PASS = "osduhfgp9as7d8yasd";
+        //private static string MYSQL_DB = "gamelimits";
+
         #region Oxide Hooks
         private void OnServerInitialized()
         {
